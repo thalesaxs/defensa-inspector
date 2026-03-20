@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Defensa Inspector">
+<meta name="description" content="App de vistoria de defensas metálicas — NBR 15486">
+<link rel="manifest" href="manifest.json">
+<title>Vistoria — Defensas Metálicas</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f1117; --surface:#181c27; --surface2:#1f2435; --border:#2a3050;
+    --accent:#f0b429; --accent2:#3dd68c; --danger:#ff5a5f;
+    --text:#e8eaf0; --muted:#7b82a0;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:14px;overscroll-behavior:none;}
+
+  header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;}
+  .header-meta{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:right;line-height:1.5;}
+
+  .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:57px;z-index:99;}
+  .tab{flex:1;padding:10px 4px;font-family:var(--mono);font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .screen{display:none;padding:16px;padding-bottom:120px;animation:fadeIn .25s ease;}
+  .screen.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .field-group{margin-bottom:20px;}
+  .field-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:block;}
+  input,textarea,select{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;padding:10px 12px;border-radius:6px;outline:none;transition:border-color .2s;}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+  textarea{resize:vertical;min-height:70px;}
+  select option{background:var(--surface2);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .section-title{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;padding:6px 0 10px;border-bottom:1px solid var(--border);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .section-title::before{content:'//';color:var(--muted);}
+
+  /* seção colapsável */
+  .cat-section{margin-bottom:4px;}
+  .cat-header{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:8px;margin-bottom:6px;background:var(--surface2);border:1px solid var(--border);transition:border-color .2s;user-select:none;}
+  .cat-header-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;flex:1;}
+  .cat-header-label::before{content:'// ';}
+  .cat-badges{display:flex;gap:5px;align-items:center;}
+  .cat-badge-c{font-family:var(--mono);font-size:9px;color:var(--accent2);}
+  .cat-badge-nc{font-family:var(--mono);font-size:9px;color:var(--danger);}
+  .cat-toggle{font-family:var(--mono);font-size:11px;color:var(--muted);transition:transform .2s;}
+  .cat-section.collapsed .cat-toggle{transform:rotate(-90deg);}
+  .cat-section.collapsed .cat-items{display:none;}
+
+  /* checklist item */
+  .check-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
+  .check-item.conforme{border-color:var(--accent2);}
+  .check-item.nao-conforme{border-color:var(--danger);}
+  .check-header{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer;}
+  .check-num{font-family:var(--mono);font-size:10px;color:var(--muted);min-width:22px;}
+  .check-name{flex:1;font-size:13px;font-weight:500;line-height:1.3;}
+  .check-badge{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:3px 7px;border-radius:20px;background:var(--surface2);color:var(--muted);white-space:nowrap;}
+  .check-item.conforme .check-badge{background:rgba(61,214,140,.15);color:var(--accent2);}
+  .check-item.nao-conforme .check-badge{background:rgba(255,90,95,.15);color:var(--danger);}
+  .check-body{display:none;padding:10px 12px 12px;border-top:1px solid var(--border);}
+  .check-body.open{display:block;}
+
+  /* botões de status */
+  .btn-row{display:flex;gap:8px;margin-bottom:10px;}
+  .btn-status{flex:1;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;cursor:pointer;background:var(--surface2);color:var(--muted);transition:all .15s;}
+  .btn-status.ok.active{background:rgba(61,214,140,.2);border-color:var(--accent2);color:var(--accent2);}
+  .btn-status.nok.active{background:rgba(255,90,95,.2);border-color:var(--danger);color:var(--danger);}
+  .obs-label{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:5px;display:block;}
+
+  /* ícone de ajuda */
+  .help-btn{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;flex-shrink:0;transition:border-color .15s,color .15s;line-height:1;vertical-align:middle;margin-left:4px;}
+  .help-btn.open{border-color:var(--accent);color:var(--accent);}
+  .help-box{display:none;margin:6px 0 8px;background:rgba(240,180,41,.06);border:1px solid rgba(240,180,41,.2);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.55;color:var(--text);}
+  .help-box.open{display:block;}
+  .help-nc{color:var(--danger);font-weight:600;}
+
+  /* fotos */
+  .nc-photo-area{border:1px dashed var(--danger);border-radius:6px;padding:10px;text-align:center;cursor:pointer;color:var(--danger);font-family:var(--mono);font-size:10px;margin-top:8px;background:rgba(255,90,95,.04);position:relative;overflow:hidden;}
+  .photo-area{border:1px dashed var(--border);border-radius:6px;padding:10px;text-align:center;cursor:pointer;color:var(--muted);font-family:var(--mono);font-size:10px;margin-top:8px;transition:border-color .2s;position:relative;overflow:hidden;}
+  .photo-area:hover{border-color:var(--accent);}
+  .nc-photo-area input[type=file],.photo-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .photo-thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .photo-thumb{width:52px;height:52px;border-radius:4px;object-fit:cover;border:1px solid var(--border);}
+
+  /* progress */
+  .progress-wrap{margin-bottom:16px;}
+  .progress-label{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:5px;}
+  .progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease;}
+
+  /* botões gerais */
+  .btn-primary{display:block;width:100%;padding:14px;background:var(--accent);color:#000;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border:none;border-radius:8px;cursor:pointer;transition:opacity .15s;}
+  .btn-primary:hover{opacity:.88;}
+  .btn-secondary{display:block;width:100%;padding:12px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.06em;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .2s,color .2s;margin-top:8px;}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* relatório */
+  .rel-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;}
+  .rel-card-title{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+  .rel-stat-row{display:flex;gap:10px;margin-bottom:12px;}
+  .rel-stat{flex:1;background:var(--surface2);border-radius:6px;padding:10px;text-align:center;}
+  .rel-stat-num{font-family:var(--mono);font-size:22px;font-weight:600;}
+  .rel-stat-num.green{color:var(--accent2);}
+  .rel-stat-num.red{color:var(--danger);}
+  .rel-stat-num.yellow{color:var(--accent);}
+  .rel-stat-label{font-size:10px;color:var(--muted);margin-top:2px;}
+  .rel-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .rel-item:last-child{border-bottom:none;}
+  .rel-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+  .rel-dot.c{background:var(--accent2);}
+  .rel-dot.nc{background:var(--danger);}
+  .rel-dot.ni{background:var(--muted);}
+  .rel-item-name{font-size:12px;flex:1;}
+  .rel-item-status{font-family:var(--mono);font-size:9px;}
+  .rel-item-status.c{color:var(--accent2);}
+  .rel-item-status.nc{color:var(--danger);}
+  .rel-item-obs{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  /* export bar */
+  .export-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 16px;z-index:200;display:flex;gap:8px;}
+  .export-bar .btn-primary{margin:0;}
+  .export-bar .btn-secondary{margin:0;flex-shrink:0;width:auto;padding:12px 16px;}
+
+  /* toast */
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent2);color:#000;font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:8px 16px;border-radius:20px;opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⬡ Defensa Inspector</div>
+  <div class="header-meta" id="header-date"></div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('dados')">Dados</button>
+  <button class="tab" onclick="showTab('vistoria')">Vistoria</button>
+  <button class="tab" onclick="showTab('relatorio')">Relatório</button>
+</div>
+
+<!-- ABA: DADOS -->
+<div class="screen active" id="screen-dados">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:18px">📅</span>
+    <div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;">Data da vistoria</div>
+      <div style="font-size:15px;font-weight:600;" id="data-auto-display">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">Dados da Rodovia</div>
+
+  <div class="field-group">
+    <label class="field-label">Rodovia</label>
+    <input type="text" id="f-rodovia" placeholder="ex: BR-116">
+  </div>
+  <div class="field-group row2">
+    <div>
+      <label class="field-label">Sentido</label>
+      <select id="f-sentido">
+        <option value="">—</option>
+        <option>Norte</option><option>Sul</option><option>Leste</option><option>Oeste</option>
+        <option>Crescente</option><option>Decrescente</option>
+      </select>
+    </div>
+    <div>
+      <label class="field-label">Posição</label>
+      <select id="f-posicao">
+        <option value="">—</option>
+        <option>Margem direita</option><option>Margem esquerda</option><option>Canteiro central</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:4px">Tipo de Defensa</div>
+  <div class="field-group">
+    <label class="field-label">Modelo / tipo</label>
+    <select id="f-tipo">
+      <option value="">—</option>
+      <option>Simples onda (maleável)</option>
+      <option>Dupla onda (semimaleável)</option>
+      <option>Tripla onda</option>
+    </select>
+  </div>
+  <div class="field-group row2">
+    <div>
+      <label class="field-label">Nível contenção <button class="help-btn" id="hbtn-nivel" onclick="toggleDicaNivel(event)">?</button></label>
+      <div class="help-box" id="hbox-nivel" style="margin-bottom:8px;">
+        <b style="color:var(--accent)">N — Contenção normal</b><br>
+        <b>N1:</b> veículos leves. Rodovias com tráfego misto leve.<br>
+        <b>N2:</b> veículos leves e comerciais leves. Uso geral em rodovias.<br><br>
+        <b style="color:var(--accent)">H — Alta contenção</b><br>
+        <b>H1:</b> veículos comerciais médios (ônibus e caminhões leves).<br>
+        <b>H2:</b> caminhões pesados. Rodovias com alto volume de carga.<br>
+        <b>H3:</b> caminhões muito pesados ou combinações de veículos.<br>
+        <b>H4a / H4b:</b> máxima contenção — veículos extra-pesados, locais de risco crítico (pontes, taludes altos, áreas urbanas).
+      </div>
+      <select id="f-nivel">
+        <option value="">—</option>
+        <option>N1</option><option>N2</option><option>H1</option><option>H2</option>
+        <option>H3</option><option>H4a</option><option>H4b</option>
+      </select>
+    </div>
+    <div>
+      <label class="field-label">Instalação</label>
+      <select id="f-instalacao">
+        <option value="">—</option>
+        <option>Solo</option><option>Talude corte</option><option>Talude aterro</option><option>Ponte/viaduto</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:4px">Local desta Defensa</div>
+  <div class="field-group">
+    <label class="field-label">Quilômetro</label>
+    <input type="text" id="f-km" placeholder="ex: km 245+300">
+  </div>
+  <div class="field-group">
+    <label class="field-label">Extensão inspecionada (m)</label>
+    <input type="number" id="f-extensao" placeholder="ex: 320">
+  </div>
+
+  <button class="btn-primary" onclick="iniciarVistoria()">Iniciar Vistoria →</button>
+
+  <!-- Rascunho -->
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    <button class="btn-secondary" style="margin-top:0;flex:1;" onclick="salvarRascunho()">💾 Salvar rascunho</button>
+    <label style="flex:1;margin-top:0;display:block;padding:12px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.06em;border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;transition:border-color .2s,color .2s;" id="label-carregar">
+      📂 Carregar rascunho
+      <input type="file" accept=".json" onchange="carregarRascunho(this)" style="display:none;">
+    </label>
+  </div>
+
+  <div id="defensas-lista-wrap" style="display:none;margin-top:24px;">
+    <div class="section-title">Defensas Registradas Hoje</div>
+    <div id="defensas-lista"></div>
+    <button class="btn-secondary" onclick="novaDefensa()">+ Nova Defensa</button>
+  </div>
+</div>
+
+<!-- ABA: VISTORIA -->
+<div class="screen" id="screen-vistoria">
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Progresso</span>
+      <span id="progress-text">0 / 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div id="checklist-container"></div>
+  <div style="display:flex;gap:8px;margin-top:8px;">
+    <button class="btn-primary" onclick="finalizarDefensa()" style="flex:1">✓ Finalizar esta Defensa</button>
+    <button onclick="showTab('relatorio')" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:0 14px;border-radius:8px;cursor:pointer;white-space:nowrap;">Relatório</button>
+  </div>
+</div>
+
+<!-- ABA: RELATÓRIO -->
+<div class="screen" id="screen-relatorio">
+  <div class="rel-card">
+    <div class="rel-card-title">Resumo da Inspeção</div>
+    <div id="rel-meta" style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:12px;"></div>
+    <div class="rel-stat-row">
+      <div class="rel-stat"><div class="rel-stat-num green" id="stat-c">0</div><div class="rel-stat-label">Conformes</div></div>
+      <div class="rel-stat"><div class="rel-stat-num red" id="stat-nc">0</div><div class="rel-stat-label">Não conformes</div></div>
+      <div class="rel-stat"><div class="rel-stat-num yellow" id="stat-ni">0</div><div class="rel-stat-label">Não inspecion.</div></div>
+    </div>
+  </div>
+  <div class="rel-card">
+    <div class="rel-card-title">Itens Inspecionados</div>
+    <div id="rel-items"></div>
+  </div>
+  <div style="height:80px"></div>
+</div>
+
+<div class="export-bar" id="export-bar" style="display:none">
+  <button class="btn-primary" style="flex:1" onclick="gerarPDF(false)">↓ PDF Completo</button>
+  <button class="btn-secondary" style="margin:0;flex:1" onclick="gerarPDF(true)">↓ PDF Não conformes</button>
+  <button onclick="compartilhar()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:0 12px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;">⇧</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+
+// ── DICAS ──
+var DICAS = {};
+
+DICAS["0_0"] = "Verifique amassados, dobras, perfuracoes ou cortes visiveis na lamina e nos postes. NC: qualquer dano que comprometa o alinhamento, a forma ou a capacidade de contencao da defensa.";
+DICAS["0_1"] = "Verifique ferrugem, oxidacao ou revestimento danificado em qualquer peca: laminas, postes, parafusos e espacadores. NC: corrosao vermelha avancada expondo o aco, galvanizacao esgotada nos fixadores, ou tinta descascada em area significativa.";
+DICAS["1_0"] = "Verifique se o poste esta na vertical olhando de frente e de lado. NC: inclinacao visivel a olho nu, poste tombado ou base afastada do solo. Cravacao minima exigida: 1100 mm — poste instavel ou que balanca ao toque indica cravacao insuficiente. Espacamento padrao entre postes e 2000 mm — NC se poste faltando ou espacamento muito irregular.";
+DICAS["1_1"] = "Confira se todos os pontos de fixacao tem parafuso, porca e arruela, e se estao apertados. NC: parafuso faltando, porca girando a mao ou folga visivel entre a lamina e o poste.";
+DICAS["1_2"] = "O espacador mantem a lamina afastada do poste para permitir a deflexao correta no impacto. NC: espacador faltando, partido ou deformado; garra dobrada, rompida ou com encaixe frouxo.";
+DICAS["0_2"] = "As laminas se conectam com sobreposicao minima de 310 mm no sentido do trafego. NC: sobreposicao insuficiente, laminas soltas ou instaladas no sentido contrario ao trafego.";
+DICAS["2_1"] = "Quando a defensa encontra barreira rigida (muro, pilar de ponte), deve haver peca de transicao gradual. NC: encosto direto sem transicao, criando ponto de rigidez abrupta.";
+DICAS["2_0"] = "O terminal e a extremidade da defensa e deve ser elemento especial (enrolado, enterrado ou com amortecedor). NC: extremidade cortada a reto sem tratamento, terminal danificado ou ausente. O abatimento deve ser de no maximo 15 graus — terminal quase vertical cria obstaculo rigido. Verifique tambem rebarbas ou parafusos salientes voltados ao trafego.";
+DICAS["3_1"] = "Quando a defensa encontra barreira rigida (muro, pilar de ponte), deve haver peca de transicao gradual. NC: encosto direto sem transicao, criando ponto de rigidez abrupta.";
+DICAS["3_0"] = "Percorra a extensao verificando dois problemas: (1) Desalinhamento — a defensa deve seguir linha continua e paralela ao eixo da pista. NC: desvios bruscos, trechos em zigue-zague ou segmentos deslocados lateralmente. (2) Embolsamento — a defensa nao deve formar barriga para fora, como um arco. NC: curvatura visivel para fora da linha reta esperada, indicando deformacao estrutural ou impacto anterior.";
+DICAS["3_1"] = "A deflexao e o espaco livre atras da defensa necessario para ela absorver o impacto sem atingir obstaculo. NC: obstaculo mais proximo do que o minimo previsto para o nivel de contencao instalado. O terreno na frente deve ser plano — aclive acentuado pode fazer o veiculo cavalgar sobre ela.";
+
+// ── ITENS DO CHECKLIST ──
+var ITENS = [
+  { cat: "Estrutura da defensa metalica", items: [
+    "Danos fisicos",
+    "Corrosao e revestimento",
+    "Sobreposicao e continuidade"
+  ]},
+  { cat: "Postes e fixacao", items: [
+    "Condicao e instalacao dos postes",
+    "Parafusos e aperto",
+    "Espacadores e garras"
+  ]},
+  { cat: "Terminais", items: [
+    "Tipo, condicao e abatimento do terminal",
+    "Transicao para elemento rigido"
+  ]},
+  { cat: "Alinhamento e geometria", items: [
+    "Alinhamento e deformacoes do tracado",
+    "Deflexao livre e terreno frontal"
+  ]}
+];
+
+// Nomes para exibição (com acentuação)
+var NOMES_DISPLAY = {
+  "Estrutura da defensa metalica": "Estrutura da defensa metálica",
+  "Postes e fixacao": "Postes e fixação",
+  "Terminais": "Terminais",
+  "Alinhamento e geometria": "Alinhamento e geometria",
+  "Danos fisicos": "Danos físicos",
+  "Corrosao e revestimento": "Corrosão e revestimento",
+  "Condicao e instalacao dos postes": "Condição e instalação dos postes",
+  "Parafusos e aperto": "Parafusos, porcas e aperto",
+  "Espacadores e garras": "Espaçadores e garras",
+  "Sobreposicao e continuidade": "Sobreposição e continuidade",
+  "Tipo, condicao e abatimento do terminal": "Tipo, condição e abatimento do terminal",
+  "Transicao para elemento rigido": "Transição para elemento rígido",
+  "Alinhamento e deformacoes do tracado": "Alinhamento e deformações do traçado",
+  "Deflexao livre e terreno frontal": "Deflexão livre e terreno frontal",
+};
+
+function displayName(key) {
+  return NOMES_DISPLAY[key] || key;
+}
+
+// ── STATE ──
+var activeTab = "dados";
+var defensasRegistradas = [];
+var allItems = [];
+var ultimosFixos = null; // guarda rodovia, sentido e posição da última defensa
+
+function makeItems() {
+  var items = [];
+  ITENS.forEach(function(cat, ci) {
+    cat.items.forEach(function(name, ii) {
+      var id = ci + "_" + ii;
+      items.push({ id: id, cat: cat.cat, name: name, dica: DICAS[id] || null, status: null, obs: "", photos: [] });
+    });
+  });
+  return items;
+}
+
+function getData() {
+  return {
+    rodovia: document.getElementById("f-rodovia").value,
+    sentido: document.getElementById("f-sentido").value,
+    posicao: document.getElementById("f-posicao").value,
+    extensao: document.getElementById("f-extensao").value,
+    tipo: document.getElementById("f-tipo").value,
+    nivel: document.getElementById("f-nivel").value,
+    instalacao: document.getElementById("f-instalacao").value,
+    km: document.getElementById("f-km").value
+  };
+}
+
+// ── INIT ──
+window.onload = function() {
+  allItems = makeItems();
+  var today = new Date();
+  var hh = String(today.getHours()).padStart(2,"0");
+  var mm = String(today.getMinutes()).padStart(2,"0");
+  var dataStr = today.toLocaleDateString("pt-BR", {weekday:"long", day:"2-digit", month:"long", year:"numeric"});
+  document.getElementById("data-auto-display").textContent = dataStr.charAt(0).toUpperCase() + dataStr.slice(1);
+  document.getElementById("header-date").innerHTML =
+    today.toLocaleDateString("pt-BR", {weekday:"short", day:"2-digit", month:"short"}) + "<br>" + hh + ":" + mm;
+  buildChecklist();
+};
+
+// ── TABS ──
+function showTab(tab) {
+  document.querySelectorAll(".screen").forEach(function(s) { s.classList.remove("active"); });
+  document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+  document.getElementById("screen-" + tab).classList.add("active");
+  document.querySelectorAll(".tab")[["dados","vistoria","relatorio"].indexOf(tab)].classList.add("active");
+  activeTab = tab;
+  var exportBar = document.getElementById("export-bar");
+  if (tab === "relatorio") { buildRelatorio(); exportBar.style.display = "flex"; }
+  else { exportBar.style.display = "none"; }
+  if (tab === "dados" && ultimosFixos) {
+    document.getElementById("f-rodovia").value = ultimosFixos.rodovia || "";
+    var sel = document.getElementById("f-sentido");
+    for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === ultimosFixos.sentido) { sel.selectedIndex = i; break; } }
+    var pos = document.getElementById("f-posicao");
+    for (var j = 0; j < pos.options.length; j++) { if (pos.options[j].value === ultimosFixos.posicao) { pos.selectedIndex = j; break; } }
+  }
+  if (tab === "vistoria") { buildChecklist(); updateProgress(); }
+  window.scrollTo(0, 0);
+}
+
+// ── FLUXO ──
+function iniciarVistoria() {
+  var km = document.getElementById("f-km").value.trim();
+  if (!km) { showToast("Informe o quilometro antes de iniciar."); document.getElementById("f-km").focus(); return; }
+  showTab("vistoria");
+}
+
+function finalizarDefensa() {
+  var d = getData();
+  var c = allItems.filter(function(i) { return i.status === "C"; }).length;
+  var nc = allItems.filter(function(i) { return i.status === "NC"; }).length;
+  var gpsDefensa = null;
+  for (var i = 0; i < allItems.length; i++) {
+    var foto = allItems[i].photos.find(function(p) { return p.gps; });
+    if (foto) { gpsDefensa = foto.gps; break; }
+  }
+  defensasRegistradas.push({
+    km: d.km, gps: gpsDefensa, extensao: d.extensao,
+    items: JSON.parse(JSON.stringify(allItems)),
+    timestamp: new Date().toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}),
+    conformes: c, nconformes: nc
+  });
+
+  // salva os campos que se repetem
+  ultimosFixos = { rodovia: d.rodovia, sentido: d.sentido, posicao: d.posicao };
+
+  allItems = makeItems();
+  // limpa só os campos que mudam a cada defensa
+  document.getElementById("f-km").value = "";
+  document.getElementById("f-extensao").value = "";
+  // mantém tipo/nível/instalação também (costumam ser iguais no trecho)
+
+  atualizarListaDefensas();
+  showTab("dados");
+  showToast("Defensa " + defensasRegistradas.length + " registrada!");
+}
+
+function novaDefensa() {
+  allItems = makeItems();
+  buildChecklist();
+  showTab("vistoria");
+}
+
+// ── RASCUNHO ──
+function salvarRascunho() {
+  var d = getData();
+  var rascunho = {
+    versao: 1,
+    timestamp: new Date().toISOString(),
+    campos: {
+      rodovia: d.rodovia, sentido: d.sentido, posicao: d.posicao,
+      tipo: d.tipo, nivel: d.nivel, instalacao: d.instalacao,
+      km: d.km, extensao: d.extensao
+    },
+    defensasRegistradas: defensasRegistradas.map(function(def) {
+      return {
+        km: def.km, extensao: def.extensao, timestamp: def.timestamp,
+        gps: def.gps, conformes: def.conformes, nconformes: def.nconformes,
+        items: def.items.map(function(item) {
+          return { id: item.id, cat: item.cat, name: item.name, status: item.status, obs: item.obs, photos: [] };
+        })
+      };
+    }),
+    vistoriaAtual: allItems.map(function(item) {
+      return { id: item.id, cat: item.cat, name: item.name, dica: item.dica, status: item.status, obs: item.obs, photos: [] };
+    }),
+    ultimosFixos: ultimosFixos
+  };
+  var blob = new Blob([JSON.stringify(rascunho, null, 2)], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  var data = new Date().toISOString().split("T")[0];
+  a.href = url;
+  a.download = "rascunho-vistoria-" + (d.rodovia || "defensa").replace(/\s/g, "-") + "-" + data + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Rascunho salvo!");
+}
+
+function carregarRascunho(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var r = JSON.parse(e.target.result);
+      if (!r.versao || !r.campos) { showToast("Arquivo invalido."); return; }
+      var c = r.campos;
+      document.getElementById("f-rodovia").value = c.rodovia || "";
+      document.getElementById("f-km").value = c.km || "";
+      document.getElementById("f-extensao").value = c.extensao || "";
+      setSelect("f-sentido", c.sentido);
+      setSelect("f-posicao", c.posicao);
+      setSelect("f-tipo", c.tipo);
+      setSelect("f-nivel", c.nivel);
+      setSelect("f-instalacao", c.instalacao);
+      defensasRegistradas = r.defensasRegistradas || [];
+      allItems = (r.vistoriaAtual && r.vistoriaAtual.length > 0) ? r.vistoriaAtual : makeItems();
+      ultimosFixos = r.ultimosFixos || null;
+      atualizarListaDefensas();
+      buildChecklist();
+      showToast("Rascunho carregado!");
+    } catch(err) {
+      showToast("Erro ao carregar rascunho.");
+    }
+  };
+  reader.readAsText(file);
+  input.value = "";
+}
+
+function setSelect(id, val) {
+  if (!val) return;
+  var el = document.getElementById(id);
+  for (var i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === val || el.options[i].text === val) { el.selectedIndex = i; return; }
+  }
+}
+
+function atualizarListaDefensas() {
+  var wrap = document.getElementById("defensas-lista-wrap");
+  var lista = document.getElementById("defensas-lista");
+  if (defensasRegistradas.length === 0) { wrap.style.display = "none"; return; }
+  wrap.style.display = "block";
+  lista.innerHTML = defensasRegistradas.map(function(def, idx) {
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">'
+      + '<div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--accent);">' + (idx+1) + '</div>'
+      + '<div style="flex:1;">'
+        + '<div style="font-size:13px;font-weight:600;">' + def.km + '</div>'
+        + '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);">'
+          + def.timestamp + ' &nbsp;|&nbsp; '
+          + '<span style="color:var(--accent2);">✓' + def.conformes + '</span> &nbsp; '
+          + '<span style="color:var(--danger);">✗' + def.nconformes + '</span>'
+          + (def.extensao ? ' &nbsp;| ' + def.extensao + 'm' : '')
+        + '</div>'
+      + '</div>'
+    + '</div>';
+  }).join("");
+}
+
+// ── CHECKLIST ──
+function buildChecklist() {
+  var container = document.getElementById("checklist-container");
+  var html = "";
+  var cats = {};
+  var catOrder = [];
+  allItems.forEach(function(item, idx) {
+    if (!cats[item.cat]) { cats[item.cat] = []; catOrder.push(item.cat); }
+    cats[item.cat].push({ item: item, idx: idx });
+  });
+
+  catOrder.forEach(function(cat, ci) {
+    var catId = "cat-" + ci;
+    var entries = cats[cat];
+    html += '<div class="cat-section" id="' + catId + '" style="margin-top:' + (ci > 0 ? "12px" : "0") + '">';
+    html += '<div class="cat-header" onclick="toggleCat(\'' + catId + '\')">';
+    html += '<span class="cat-header-label">' + displayName(cat) + '</span>';
+    html += '<div class="cat-badges"><span class="cat-badge-c" id="' + catId + '-c">—</span><span class="cat-badge-nc" id="' + catId + '-nc"></span></div>';
+    html += '<span class="cat-toggle">▾</span></div>';
+    html += '<div class="cat-items">';
+
+    entries.forEach(function(entry) {
+      var item = entry.item;
+      var idx = entry.idx;
+      var helpBtn = item.dica
+        ? '<button class="help-btn" id="hbtn-' + item.id + '" onclick="toggleDica(event,\'' + item.id + '\')">?</button>'
+        : "";
+      var helpBox = item.dica
+        ? '<div class="help-box" id="hbox-' + item.id + '">' + item.dica + '</div>'
+        : "";
+
+      html += '<div class="check-item" id="ci-' + item.id + '">';
+      html += '<div class="check-header" onclick="toggleCheck(\'' + item.id + '\')">';
+      html += '<span class="check-num">' + String(idx + 1).padStart(2, "0") + '</span>';
+      html += '<span class="check-name">' + displayName(item.name) + helpBtn + '</span>';
+      html += '<span class="check-badge" id="badge-' + item.id + '">—</span>';
+      html += '</div>';
+      html += '<div class="check-body" id="body-' + item.id + '">';
+      html += helpBox;
+      html += '<div class="btn-row">';
+      html += '<button class="btn-status ok" id="btn-ok-' + item.id + '" onclick="setStatus(\'' + item.id + '\',\'C\',\'' + catId + '\')">✓ Conforme</button>';
+      html += '<button class="btn-status nok" id="btn-nok-' + item.id + '" onclick="setStatus(\'' + item.id + '\',\'NC\',\'' + catId + '\')">✗ Não conforme</button>';
+      html += '</div>';
+      html += '<label class="obs-label">Observação</label>';
+      html += '<textarea placeholder="Detalhe a situação encontrada..." rows="2" oninput="setObs(\'' + item.id + '\',this.value)">' + item.obs + '</textarea>';
+      html += '<div class="nc-photo-area" id="nc-photo-' + item.id + '" style="display:none;">📸 Registrar foto da não conformidade<input type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(\'' + item.id + '\',this,true)"></div>';
+      html += '<div class="photo-area">📷 Foto geral<input type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(\'' + item.id + '\',this,false)"></div>';
+      html += '<div class="photo-thumbs" id="thumbs-' + item.id + '"></div>';
+      html += '</div></div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  container.innerHTML = html;
+  updateProgress();
+}
+
+function toggleCat(catId) {
+  document.getElementById(catId).classList.toggle("collapsed");
+}
+
+function updateCatBadges(catId) {
+  var sec = document.getElementById(catId);
+  if (!sec) return;
+  var els = sec.querySelectorAll(".check-item");
+  var c = 0, nc = 0;
+  els.forEach(function(el) {
+    if (el.classList.contains("conforme")) c++;
+    if (el.classList.contains("nao-conforme")) nc++;
+  });
+  var cEl = document.getElementById(catId + "-c");
+  var ncEl = document.getElementById(catId + "-nc");
+  if (cEl) cEl.textContent = "✓" + c + "/" + els.length;
+  if (ncEl) ncEl.textContent = nc > 0 ? "✗" + nc : "";
+}
+
+function toggleDicaNivel(e) {
+  e.preventDefault();
+  var box = document.getElementById("hbox-nivel");
+  var btn = document.getElementById("hbtn-nivel");
+  var isOpen = box.classList.toggle("open");
+  btn.classList.toggle("open", isOpen);
+}
+
+
+function toggleDica(e, id) {
+  e.stopPropagation();
+  document.getElementById("body-" + id).classList.add("open");
+  var box = document.getElementById("hbox-" + id);
+  var btn = document.getElementById("hbtn-" + id);
+  var isOpen = box.classList.toggle("open");
+  btn.classList.toggle("open", isOpen);
+}
+
+function toggleCheck(id) {
+  document.getElementById("body-" + id).classList.toggle("open");
+}
+
+function setStatus(id, status, catId) {
+  var item = allItems.find(function(i) { return i.id === id; });
+  item.status = status;
+  var el = document.getElementById("ci-" + id);
+  el.classList.remove("conforme", "nao-conforme");
+  el.classList.add(status === "C" ? "conforme" : "nao-conforme");
+  document.getElementById("badge-" + id).textContent = status === "C" ? "CONFORME" : "NÃO CONFORME";
+  document.getElementById("btn-ok-" + id).classList.toggle("active", status === "C");
+  document.getElementById("btn-nok-" + id).classList.toggle("active", status === "NC");
+  var ncPhoto = document.getElementById("nc-photo-" + id);
+  if (ncPhoto) ncPhoto.style.display = status === "NC" ? "block" : "none";
+  updateCatBadges(catId);
+  updateProgress();
+}
+
+function setObs(id, val) {
+  var item = allItems.find(function(i) { return i.id === id; });
+  if (item) item.obs = val;
+}
+
+function addPhotos(id, input, isNC) {
+  var item = allItems.find(function(i) { return i.id === id; });
+  var thumbsEl = document.getElementById("thumbs-" + id);
+  var gpsAtFoto = null;
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(pos) { gpsAtFoto = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy) }; },
+      function() {},
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }
+  Array.from(input.files).forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var ts = new Date().toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"});
+      var photoObj = { src: e.target.result, isNC: isNC, gps: gpsAtFoto, ts: ts };
+      item.photos.push(photoObj);
+      var wrap = document.createElement("div");
+      wrap.style.cssText = "position:relative;display:inline-block;";
+      var img = document.createElement("img");
+      img.src = e.target.result;
+      img.className = "photo-thumb";
+      if (isNC) img.style.border = "2px solid var(--danger)";
+      wrap.appendChild(img);
+      if (isNC) {
+        var tag = document.createElement("div");
+        tag.style.cssText = "position:absolute;bottom:2px;left:2px;background:var(--danger);color:#fff;font-size:7px;font-family:var(--mono);padding:1px 3px;border-radius:2px;";
+        tag.textContent = "NC";
+        wrap.appendChild(tag);
+      }
+      thumbsEl.appendChild(wrap);
+      setTimeout(function() { if (!photoObj.gps && gpsAtFoto) photoObj.gps = gpsAtFoto; }, 5000);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function updateProgress() {
+  var done = allItems.filter(function(i) { return i.status !== null; }).length;
+  var total = allItems.length;
+  document.getElementById("progress-text").textContent = done + " / " + total;
+  document.getElementById("progress-fill").style.width = ((done / total) * 100) + "%";
+}
+
+// ── RELATÓRIO ──
+function buildRelatorio() {
+  var d = getData();
+  var today = new Date();
+  var todasItems = defensasRegistradas.reduce(function(acc, def) { return acc.concat(def.items); }, []);
+  var conformes = todasItems.filter(function(i) { return i.status === "C"; }).length;
+  var nconformes = todasItems.filter(function(i) { return i.status === "NC"; }).length;
+  var ninspect = todasItems.filter(function(i) { return i.status === null; }).length;
+  document.getElementById("stat-c").textContent = conformes;
+  document.getElementById("stat-nc").textContent = nconformes;
+  document.getElementById("stat-ni").textContent = ninspect;
+  document.getElementById("rel-meta").innerHTML =
+    "<b>Data:</b> " + today.toLocaleDateString("pt-BR") + "<br>" +
+    "<b>Rodovia:</b> " + (d.rodovia || "—") + " &nbsp;|&nbsp; <b>Sentido:</b> " + (d.sentido || "—") + "<br>" +
+    "<b>Posição:</b> " + (d.posicao || "—") + " &nbsp;|&nbsp; <b>Tipo:</b> " + (d.tipo || "—") + "<br>" +
+    "<b>Nível:</b> " + (d.nivel || "—") + " &nbsp;|&nbsp; <b>Instalação:</b> " + (d.instalacao || "—") + "<br>" +
+    "<b>Defensas inspecionadas:</b> " + defensasRegistradas.length;
+
+  if (defensasRegistradas.length === 0) {
+    document.getElementById("rel-items").innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:12px 0;">Nenhuma defensa finalizada ainda.</div>';
+    return;
+  }
+  var html = "";
+  defensasRegistradas.forEach(function(def, idx) {
+    html += '<div style="margin-bottom:16px;">';
+    html += '<div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;">';
+    html += '<span>Defensa ' + (idx+1) + ' — ' + def.km + '</span>';
+    html += '<span style="color:var(--muted);">' + def.timestamp + (def.extensao ? ' · ' + def.extensao + 'm' : '') + '</span></div>';
+    if (def.gps) html += '<div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:6px;">📍 ' + def.gps.lat + ', ' + def.gps.lng + ' ±' + def.gps.acc + 'm</div>';
+    def.items.forEach(function(item) {
+      var cls = item.status === "C" ? "c" : item.status === "NC" ? "nc" : "ni";
+      var label = item.status === "C" ? "CONFORME" : item.status === "NC" ? "NÃO CONF." : "N/I";
+      var fotosNC = item.photos.filter(function(p) { return p.isNC; }).length;
+      var fotosG = item.photos.filter(function(p) { return !p.isNC; }).length;
+      var fotosGps = item.photos.filter(function(p) { return p.gps; }).length;
+      html += '<div class="rel-item">';
+      html += '<div class="rel-dot ' + cls + '"></div>';
+      html += '<div style="flex:1"><div class="rel-item-name">' + displayName(item.name) + '</div>';
+      if (item.obs) html += '<div class="rel-item-obs">↳ ' + item.obs + '</div>';
+      if (fotosNC) html += '<div class="rel-item-obs" style="color:var(--danger)">📸 ' + fotosNC + ' foto(s) NC</div>';
+      if (fotosG) html += '<div class="rel-item-obs">📷 ' + fotosG + ' foto(s) geral</div>';
+      if (fotosGps) html += '<div class="rel-item-obs" style="color:var(--accent2)">📍 GPS em ' + fotosGps + ' foto(s)</div>';
+      html += '</div><div class="rel-item-status ' + cls + '">' + label + '</div></div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById("rel-items").innerHTML = html;
+}
+
+// ── EXPORT ──
+function exportarRelatorio() {
+  var d = getData();
+  var today = new Date();
+  var todasItems = defensasRegistradas.reduce(function(acc, def) { return acc.concat(def.items); }, []);
+  var conformes = todasItems.filter(function(i) { return i.status === "C"; }).length;
+  var nconformes = todasItems.filter(function(i) { return i.status === "NC"; }).length;
+  var ninspect = todasItems.filter(function(i) { return i.status === null; }).length;
+  var txt = "RELATORIO DE VISTORIA — DEFENSAS METALICAS\n";
+  txt += "NBR 15486 / NBR 6971\n";
+  txt += "--------------------------------------------\n\n";
+  txt += "Data: " + today.toLocaleDateString("pt-BR") + "\n";
+  txt += "Rodovia: " + (d.rodovia || "—") + "   Sentido: " + (d.sentido || "—") + "\n";
+  txt += "Posicao: " + (d.posicao || "—") + "\n";
+  txt += "Tipo: " + (d.tipo || "—") + "   Nivel: " + (d.nivel || "—") + "   Instalacao: " + (d.instalacao || "—") + "\n";
+  txt += "Defensas inspecionadas: " + defensasRegistradas.length + "\n";
+  txt += "\nRESUMO GERAL\n";
+  txt += "Conformes: " + conformes + "   Nao conformes: " + nconformes + "   Nao inspecionados: " + ninspect + "\n";
+  defensasRegistradas.forEach(function(def, idx) {
+    txt += "\n============================================\n";
+    txt += "DEFENSA " + (idx+1) + " — " + def.km + "\n";
+    txt += "Horario: " + def.timestamp + (def.extensao ? "   Extensao: " + def.extensao + "m" : "") + "\n";
+    if (def.gps) txt += "GPS: " + def.gps.lat + ", " + def.gps.lng + " +-" + def.gps.acc + "m\n";
+    txt += "Conformes: " + def.conformes + "   Nao conformes: " + def.nconformes + "\n";
+    var lastCat = "";
+    def.items.forEach(function(item, i) {
+      if (item.cat !== lastCat) { txt += "\n  [ " + item.cat.toUpperCase() + " ]\n"; lastCat = item.cat; }
+      var status = item.status === "C" ? "CONFORME" : item.status === "NC" ? "NAO CONFORME" : "NAO INSPECIONADO";
+      txt += "  " + String(i+1).padStart(2,"0") + ". " + displayName(item.name) + "\n";
+      txt += "      -> " + status + "\n";
+      if (item.obs) txt += "      OBS: " + item.obs + "\n";
+      var fNC = item.photos.filter(function(p) { return p.isNC; }).length;
+      var fG = item.photos.filter(function(p) { return !p.isNC; }).length;
+      if (fNC) txt += "      FOTOS NC: " + fNC + " imagem(ns)\n";
+      if (fG) txt += "      FOTOS GERAIS: " + fG + " imagem(ns)\n";
+      item.photos.filter(function(p) { return p.gps; }).forEach(function(f) {
+        txt += "      GPS FOTO: " + f.gps.lat + ", " + f.gps.lng + " +-" + f.gps.acc + "m (" + f.ts + ")\n";
+      });
+    });
+  });
+  var blob = new Blob([txt], { type: "text/plain" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "vistoria-" + (d.rodovia || "rodovia").replace(/\s/g, "-") + "-" + today.toISOString().split("T")[0] + ".txt";
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Relatório exportado!");
+}
+
+// ── PDF ──
+function gerarPDF(apenasNC) {
+  if (defensasRegistradas.length === 0) { showToast("Nenhuma defensa finalizada."); return; }
+  showToast("Gerando PDF...");
+
+  var d = getData();
+  var today = new Date();
+  var dataFmt = today.toLocaleDateString("pt-BR");
+  var doc = new window.jspdf.jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  var PW = 210, PH = 297, M = 14, CW = PW - M * 2;
+  var y = M;
+  var corNC = [220, 50, 60];
+  var corC  = [40, 180, 100];
+  var corTit = [30, 30, 30];
+  var corMut = [120, 120, 120];
+  var corLin = [220, 220, 220];
+
+  function checkPage(needed) {
+    if (y + needed > PH - M) { doc.addPage(); y = M; return true; }
+    return false;
+  }
+
+  function linhaH(cor) {
+    doc.setDrawColor(cor[0], cor[1], cor[2]);
+    doc.setLineWidth(0.3);
+    doc.line(M, y, PW - M, y);
+    y += 3;
+  }
+
+  function textoQuebrado(txt, x, yPos, maxW, fontSize, cor) {
+    doc.setFontSize(fontSize);
+    doc.setTextColor(cor[0], cor[1], cor[2]);
+    var linhas = doc.splitTextToSize(txt, maxW);
+    doc.text(linhas, x, yPos);
+    return linhas.length * (fontSize * 0.4 + 0.5);
+  }
+
+  // ── CABEÇALHO ──
+  doc.setFillColor(30, 30, 40);
+  doc.rect(0, 0, PW, 28, "F");
+  doc.setFontSize(14); doc.setTextColor(240, 180, 40);
+  doc.text("VISTORIA DE DEFENSAS METALICAS", M, 11);
+  doc.setFontSize(8); doc.setTextColor(180, 180, 200);
+  doc.text("NBR 15486 / NBR 6971", M, 17);
+  doc.setFontSize(8); doc.setTextColor(160, 160, 180);
+  var tipo = apenasNC ? "RELATORIO — APENAS NAO CONFORMES" : "RELATORIO COMPLETO";
+  doc.text(tipo, M, 22);
+  y = 34;
+
+  // ── DADOS GERAIS ──
+  doc.setFontSize(9); doc.setTextColor(corTit[0], corTit[1], corTit[2]);
+  var todasItems = defensasRegistradas.reduce(function(a,b){return a.concat(b.items);}, []);
+  var totC  = todasItems.filter(function(i){return i.status==="C";}).length;
+  var totNC = todasItems.filter(function(i){return i.status==="NC";}).length;
+  var totNI = todasItems.filter(function(i){return i.status===null;}).length;
+
+  doc.text("Data: " + dataFmt, M, y);
+  doc.text("Rodovia: " + (d.rodovia||"—") + "   Sentido: " + (d.sentido||"—") + "   Posicao: " + (d.posicao||"—"), M, y+5);
+  doc.text("Tipo: " + (d.tipo||"—") + "   Nivel: " + (d.nivel||"—") + "   Instalacao: " + (d.instalacao||"—"), M, y+10);
+  y += 17;
+
+  // totais
+  var bw = CW / 3 - 2;
+  [[totC,"CONFORMES",corC],[totNC,"NAO CONFORMES",corNC],[totNI,"NAO INSP.",corMut]].forEach(function(item, i) {
+    var bx = M + i * (bw + 3);
+    doc.setFillColor(245, 245, 248);
+    doc.roundedRect(bx, y, bw, 14, 2, 2, "F");
+    doc.setFontSize(16); doc.setTextColor(item[2][0], item[2][1], item[2][2]);
+    doc.text(String(item[0]), bx + bw/2, y + 8, {align:"center"});
+    doc.setFontSize(7); doc.setTextColor(corMut[0], corMut[1], corMut[2]);
+    doc.text(item[1], bx + bw/2, y + 13, {align:"center"});
+  });
+  y += 20;
+
+  // ── DEFENSAS ──
+  defensasRegistradas.forEach(function(def, idx) {
+    var itensParaExibir = apenasNC
+      ? def.items.filter(function(i){ return i.status === "NC"; })
+      : def.items;
+    if (apenasNC && itensParaExibir.length === 0) return;
+
+    checkPage(20);
+    doc.setFillColor(30, 30, 40);
+    doc.rect(M, y, CW, 10, "F");
+    doc.setFontSize(9); doc.setTextColor(240, 180, 40);
+    doc.text("DEFENSA " + (idx+1) + " — " + def.km, M+3, y+6.5);
+    doc.setFontSize(8); doc.setTextColor(180,180,200);
+    doc.text(def.timestamp + (def.extensao ? "   " + def.extensao + "m" : ""), PW-M-3, y+6.5, {align:"right"});
+    y += 12;
+
+    if (def.gps) {
+      doc.setFontSize(7); doc.setTextColor(corMut[0],corMut[1],corMut[2]);
+      doc.text("GPS: " + def.gps.lat + ", " + def.gps.lng + " +-" + def.gps.acc + "m", M, y);
+      y += 5;
+    }
+
+    itensParaExibir.forEach(function(item) {
+      var fotos = item.photos || [];
+      var fotosExibir = apenasNC
+        ? fotos.filter(function(p){ return p.isNC; })
+        : fotos;
+      var temFoto = fotosExibir.length > 0;
+      var alturaMin = temFoto ? 38 : 16;
+      checkPage(alturaMin + 4);
+
+      // fundo do item
+      var bgColor = item.status === "NC" ? [255,245,245] : item.status === "C" ? [245,255,250] : [248,248,248];
+      doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+      var alturaItem = temFoto ? Math.ceil(fotosExibir.length / 3) * 36 + 20 : 16;
+      doc.rect(M, y, CW, alturaItem, "F");
+
+      // badge status
+      var sCor = item.status==="NC" ? corNC : item.status==="C" ? corC : [160,160,160];
+      var sLabel = item.status==="NC" ? "NAO CONFORME" : item.status==="C" ? "CONFORME" : "N/I";
+      doc.setFillColor(sCor[0], sCor[1], sCor[2]);
+      doc.roundedRect(PW-M-30, y+2, 29, 5, 1, 1, "F");
+      doc.setFontSize(6); doc.setTextColor(255,255,255);
+      doc.text(sLabel, PW-M-15.5, y+5.5, {align:"center"});
+
+      // nome do item
+      doc.setFontSize(8); doc.setTextColor(corTit[0],corTit[1],corTit[2]);
+      var nomeH = textoQuebrado(displayName(item.name), M+3, y+6, CW-38, 8, corTit);
+      var yConteudo = y + 6 + nomeH;
+
+      // observação
+      if (item.obs) {
+        doc.setFontSize(7); doc.setTextColor(80,80,80);
+        var obsH = textoQuebrado("Obs: " + item.obs, M+3, yConteudo+2, CW-10, 7, [80,80,80]);
+        yConteudo += obsH + 4;
+      }
+
+      // fotos lado a lado (3 por linha)
+      if (temFoto) {
+        var fW = (CW - 8) / 3;
+        var fH = 30;
+        fotosExibir.forEach(function(foto, fi) {
+          var fx = M + 3 + (fi % 3) * (fW + 2);
+          var fy = yConteudo + Math.floor(fi / 3) * (fH + 4);
+          checkPage(fH + 6);
+          try {
+            var ext = foto.src.indexOf("image/png") > -1 ? "PNG" : "JPEG";
+            doc.addImage(foto.src, ext, fx, fy, fW, fH);
+            if (foto.isNC) {
+              doc.setDrawColor(corNC[0],corNC[1],corNC[2]);
+              doc.setLineWidth(0.5);
+              doc.rect(fx, fy, fW, fH);
+              doc.setFontSize(5); doc.setTextColor(corNC[0],corNC[1],corNC[2]);
+              doc.text("NC", fx+1, fy+4);
+            }
+            if (foto.gps) {
+              doc.setFontSize(5); doc.setTextColor(corMut[0],corMut[1],corMut[2]);
+              doc.text(foto.gps.lat + "," + foto.gps.lng, fx+1, fy+fH-1);
+            }
+          } catch(e) {}
+        });
+        y += alturaItem + 3;
+      } else {
+        y += alturaItem + 2;
+      }
+
+      doc.setDrawColor(corLin[0],corLin[1],corLin[2]);
+      doc.setLineWidth(0.1);
+      doc.line(M, y, PW-M, y);
+      y += 1;
+    });
+    y += 4;
+  });
+
+  // ── RODAPÉ em todas as páginas ──
+  var totalPag = doc.getNumberOfPages();
+  for (var p = 1; p <= totalPag; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7); doc.setTextColor(corMut[0],corMut[1],corMut[2]);
+    doc.text("Defensa Inspector · " + dataFmt, M, PH-6);
+    doc.text("Pag. " + p + "/" + totalPag, PW-M, PH-6, {align:"right"});
+  }
+
+  var sufixo = apenasNC ? "-nao-conformes" : "-completo";
+  var nomeArq = "vistoria-" + (d.rodovia||"defensa").replace(/\s/g,"-") + "-" + today.toISOString().split("T")[0] + sufixo + ".pdf";
+  doc.save(nomeArq);
+  showToast("PDF gerado!");
+}
+
+
+function compartilhar() {
+  var d = getData();
+  var conformes = todasItems.filter(function(i) { return i.status === "C"; }).length;
+  var nconformes = todasItems.filter(function(i) { return i.status === "NC"; }).length;
+  var resumo = "Vistoria de Defensas Metalicas\n";
+  resumo += "Rodovia: " + (d.rodovia || "—") + "   Data: " + today + "\n";
+  resumo += "Defensas: " + defensasRegistradas.length + "\n";
+  resumo += "Conformes: " + conformes + "  Nao conformes: " + nconformes + "\n";
+  defensasRegistradas.forEach(function(def, i) {
+    resumo += "  " + (i+1) + ". " + def.km + " — C:" + def.conformes + " NC:" + def.nconformes + "\n";
+  });
+  if (navigator.share) {
+    navigator.share({ text: resumo, title: "Vistoria Defensa" })
+      .then(function() { showToast("Compartilhado!"); })
+      .catch(function() { copyToClipboard(resumo); });
+  } else {
+    copyToClipboard(resumo);
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(function() { showToast("Resumo copiado!"); });
+}
+
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(function() { t.classList.remove("show"); }, 2500);
+}
+
+// ── SERVICE WORKER ──
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("sw.js")
+      .catch(function(err) { console.log("SW erro:", err); });
+  });
+}
+
+</script>
+</body>
+</html>
