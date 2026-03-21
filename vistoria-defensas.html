@@ -184,7 +184,7 @@
 
   <div class="field-group">
     <label class="field-label">Rodovia</label>
-    <input type="text" id="f-rodovia" placeholder="ex: BR-116">
+    <input type="text" id="f-rodovia" placeholder="ex: SP-340">
   </div>
   <div class="field-group row2">
     <div>
@@ -382,6 +382,11 @@ var NOMES_DISPLAY = {
   "Alinhamento e deformacoes do tracado": "Alinhamento e deformações do traçado",
   "Deflexao livre e terreno frontal": "Deflexão livre e terreno frontal",
 };
+
+function displayNameComGrupo(item) {
+  var grupo = NOMES_DISPLAY[item.cat] || item.cat;
+  return grupo + " - " + (NOMES_DISPLAY[item.name] || item.name);
+}
 
 function displayName(key) {
   return NOMES_DISPLAY[key] || key;
@@ -870,7 +875,7 @@ function exportarRelatorio() {
       if (item.status === null) return; // ignora não inspecionados
       if (item.cat !== lastCat) { txt += "\n  [ " + item.cat.toUpperCase() + " ]\n"; lastCat = item.cat; }
       var status = item.status === "C" ? "CONFORME" : item.status === "NC" ? "NAO CONFORME" : "NAO INSPECIONADO";
-      txt += "  " + String(i+1).padStart(2,"0") + ". " + displayName(item.name) + "\n";
+      txt += "  " + String(i+1).padStart(2,"0") + ". " + displayNameComGrupo(item) + "\n";
       txt += "      -> " + status + "\n";
       if (item.obs) txt += "      OBS: " + item.obs + "\n";
       var fNC = item.photos.filter(function(p) { return p.isNC; }).length;
@@ -1010,25 +1015,22 @@ function gerarPDF() {
     ? document.getElementById("pdf-subtitulo").value.trim()
     : "NBR 15486 / NBR 6971";
 
-  var altCab = pdfSubtitulo ? 32 : 26;
+  var altCab = pdfSubtitulo ? 20 : 14;
   doc.setFillColor(26, 111, 181);
   doc.rect(0, 0, PW, altCab, "F");
-  doc.setFontSize(14); doc.setTextColor(255, 255, 255);
-  doc.text(pdfTitulo.toUpperCase(), M, 11);
+  doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+  doc.text(pdfTitulo.toUpperCase(), M, 8);
   if (pdfSubtitulo) {
-    doc.setFontSize(9); doc.setTextColor(220, 235, 255);
-    doc.text(pdfSubtitulo, M, 19);
+    doc.setFontSize(8); doc.setTextColor(220, 235, 255);
+    doc.text(pdfSubtitulo, M, 16);
   }
-  doc.setFontSize(7); doc.setTextColor(180, 210, 255);
-  var tipo = apenasNC ? "Apenas nao conformes" : "Relatorio completo";
-  doc.text(tipo + "  —  " + dataFmt, M, altCab - 3);
   y = altCab + 8;
 
   y += 6;
 
   // ── DEFENSAS ──
+  var defExibidas = 0;
   defensasRegistradas.forEach(function(def, idx) {
-    if (idx > 0) { doc.addPage(); y = M; }
     var itensParaExibir = def.items.filter(function(i) {
       if (i.status === null) return false;
       if (i.status === "NC" && !optNC) return false;
@@ -1036,6 +1038,9 @@ function gerarPDF() {
       return true;
     });
     if (itensParaExibir.length === 0) return;
+
+    if (defExibidas > 0) { doc.addPage(); y = M; }
+    defExibidas++;
 
     checkPage(20);
     doc.setFillColor(26, 111, 181);
@@ -1065,66 +1070,52 @@ function gerarPDF() {
       var fotosExibir = optFotos ? fotos : [];
       var temFoto = fotosExibir.length > 0;
 
-      // dimensões
-      var fH = 68;              // altura da foto
-      var fW = 90;              // largura da foto (lado esquerdo)
-      var txtX = M + fW + 6;   // x do texto (lado direito)
-      var txtW = CW - fW - 6;  // largura disponível para texto
-
       if (temFoto) {
-        // um bloco por foto — título à direita
+        var fW2 = (CW - 4) / 2;
+        var fH2 = 38;
+        var linhas2 = Math.ceil(fotosExibir.length / 2);
+        var alturaHeader = 10 + (item.obs ? 5 : 0);
+        var alturaItem = alturaHeader + linhas2 * (fH2 + 2) + 3;
+        checkPage(alturaItem + 3);
+
+        // fundo
+        var bgColor = item.status === "NC" ? [255,245,245] : [245,255,250];
+        doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+        doc.rect(M, y, CW, alturaItem, "F");
+
+        // badge status
+        var sCor  = item.status === "NC" ? corNC : corC;
+        var sLabel = item.status === "NC" ? "NAO CONFORME" : "CONFORME";
+        doc.setFillColor(sCor[0], sCor[1], sCor[2]);
+        doc.roundedRect(PW-M-28, y+2, 27, 4.5, 1, 1, "F");
+        doc.setFontSize(5.5); doc.setTextColor(255,255,255);
+        doc.text(sLabel, PW-M-14.5, y+5, {align:"center"});
+
+        // nome do item
+        doc.setFontSize(7.5); doc.setTextColor(corTit[0], corTit[1], corTit[2]);
+        doc.text(displayNameComGrupo(item), M+3, y+6.5);
+
+        if (item.obs) {
+          doc.setFontSize(6.5); doc.setTextColor(80,80,80);
+          doc.text("Obs: " + item.obs, M+3, y+11);
+        }
+
+        // fotos 2 por linha
+        var yFotos = y + alturaHeader;
         fotosExibir.forEach(function(foto, fi) {
-          var alturaBloco = fH + 6;
-          checkPage(alturaBloco + 4);
-
-          var blocoY = y;
-
-          // fundo do bloco
-          var bgColor = item.status === "NC" ? [255,245,245] : [245,255,250];
-          doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-          doc.rect(M, blocoY, CW, alturaBloco, "F");
-
-          // foto à esquerda
+          var col = fi % 2;
+          var row = Math.floor(fi / 2);
+          var fx = M + 2 + col * (fW2 + 2);
+          var fy = yFotos + row * (fH2 + 2);
           try {
             var ext = foto.src.indexOf("image/png") > -1 ? "PNG" : "JPEG";
-            doc.addImage(foto.src, ext, M + 2, blocoY + 3, fW, fH);
-            if (foto.isNC) {
-              doc.setDrawColor(corNC[0], corNC[1], corNC[2]);
-              doc.setLineWidth(0.7);
-              doc.rect(M + 2, blocoY + 3, fW, fH);
-            }
-            if (foto.gps) {
-              doc.setFontSize(5); doc.setTextColor(200,200,200);
-              doc.text(foto.gps.lat + ", " + foto.gps.lng, M+3, blocoY + 3 + fH - 2);
-            }
+            doc.addImage(foto.src, ext, fx, fy, fW2, fH2);
+            doc.setDrawColor(0,0,0); doc.setLineWidth(0.2);
+            doc.rect(fx, fy, fW2, fH2);
           } catch(e) {}
-
-          // título à direita
-          var sCor  = item.status === "NC" ? corNC : corC;
-          var sLabel = item.status === "NC" ? "NAO CONFORME" : "CONFORME";
-          doc.setFillColor(sCor[0], sCor[1], sCor[2]);
-          doc.roundedRect(txtX, blocoY + 3, txtW, 5, 1, 1, "F");
-          doc.setFontSize(6); doc.setTextColor(255,255,255);
-          doc.text(sLabel, txtX + txtW/2, blocoY + 6.5, {align:"center"});
-
-          doc.setFontSize(8); doc.setTextColor(corTit[0], corTit[1], corTit[2]);
-          var linhasNome = doc.splitTextToSize(displayName(item.name), txtW);
-          doc.text(linhasNome, txtX, blocoY + 14);
-          var yObs = blocoY + 14 + linhasNome.length * 4.5;
-
-          if (item.obs && fi === 0) {
-            doc.setFontSize(7); doc.setTextColor(80,80,80);
-            var linhasObs = doc.splitTextToSize("Obs: " + item.obs, txtW);
-            doc.text(linhasObs, txtX, yObs + 2);
-          }
-
-          y += alturaBloco + 2;
-
-          doc.setDrawColor(corLin[0], corLin[1], corLin[2]);
-          doc.setLineWidth(0.1);
-          doc.line(M, y, PW-M, y);
-          y += 2;
         });
+
+        y += alturaItem + 1;
 
       } else {
         // sem foto — linha simples
@@ -1138,12 +1129,12 @@ function gerarPDF() {
         var sCor  = item.status === "NC" ? corNC : corC;
         var sLabel = item.status === "NC" ? "NAO CONFORME" : "CONFORME";
         doc.setFillColor(sCor[0], sCor[1], sCor[2]);
-        doc.roundedRect(PW-M-30, y+2, 29, 5, 1, 1, "F");
+        doc.roundedRect(PW-M-28, y+2, 27, 5, 1, 1, "F");
         doc.setFontSize(6); doc.setTextColor(255,255,255);
-        doc.text(sLabel, PW-M-15.5, y+5.5, {align:"center"});
+        doc.text(sLabel, PW-M-14.5, y+5.5, {align:"center"});
 
         doc.setFontSize(8); doc.setTextColor(corTit[0], corTit[1], corTit[2]);
-        doc.text(displayName(item.name), M+3, y+7);
+        doc.text(displayNameComGrupo(item), M+3, y+7);
 
         if (item.obs) {
           doc.setFontSize(7); doc.setTextColor(80,80,80);
@@ -1151,24 +1142,15 @@ function gerarPDF() {
         }
 
         y += alturaBloco + 2;
-
-        doc.setDrawColor(corLin[0], corLin[1], corLin[2]);
-        doc.setLineWidth(0.1);
-        doc.line(M, y, PW-M, y);
-        y += 2;
       }
+
+      doc.setDrawColor(corLin[0],corLin[1],corLin[2]);
+      doc.setLineWidth(0.1);
+      doc.line(M, y, PW-M, y);
+      y += 2;
     });
     y += 4;
   });
-
-  // ── RODAPÉ em todas as páginas ──
-  var totalPag = doc.getNumberOfPages();
-  for (var p = 1; p <= totalPag; p++) {
-    doc.setPage(p);
-    doc.setFontSize(7); doc.setTextColor(corMut[0],corMut[1],corMut[2]);
-    doc.text("Defensa Inspector — NBR 15486", M, PH-6);
-    doc.text("Pag. " + p + "/" + totalPag, PW-M, PH-6, {align:"right"});
-  }
 
   var sufixo = (!optNC ? "-conformes" : (!optC ? "-nao-conformes" : "-completo"));
   var nomeArq = "vistoria-" + (d.rodovia||"defensa").replace(/\s/g,"-") + "-" + today.toISOString().split("T")[0] + sufixo + ".pdf";
@@ -1179,7 +1161,9 @@ function gerarPDF() {
 
 function compartilhar() {
   var d = getData();
-  var conformes = todasItems.filter(function(i) { return i.status === "C"; }).length;
+  var today = new Date().toLocaleDateString("pt-BR");
+  var todasItems = defensasRegistradas.reduce(function(acc, def) { return acc.concat(def.items); }, []);
+  var conformes  = todasItems.filter(function(i) { return i.status === "C"; }).length;
   var nconformes = todasItems.filter(function(i) { return i.status === "NC"; }).length;
   var resumo = "Vistoria de Defensas Metalicas\n";
   resumo += "Rodovia: " + (d.rodovia || "—") + "   Data: " + today + "\n";
