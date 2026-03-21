@@ -273,6 +273,20 @@
 
 <!-- ABA: RELATÓRIO -->
 <div class="screen" id="screen-relatorio">
+
+  <!-- Título e subtítulo do PDF -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">Cabeçalho do PDF</div>
+    <div class="field-group" style="margin-bottom:10px;">
+      <label class="field-label">Título</label>
+      <input type="text" id="pdf-titulo" placeholder="ex: Relatório de Vistoria de Defensas">
+    </div>
+    <div class="field-group" style="margin-bottom:0;">
+      <label class="field-label">Subtítulo</label>
+      <input type="text" id="pdf-subtitulo" placeholder="ex: Rodovia SP-340 — Campinas/SP">
+    </div>
+  </div>
+
   <div class="rel-card">
     <div class="rel-card-title">Itens Inspecionados</div>
     <div id="rel-items"></div>
@@ -786,6 +800,7 @@ function buildRelatorio() {
 
     // itens
     def.items.forEach(function(item) {
+      if (item.status === null) return; // ignora não inspecionados
       var cls = item.status === "C" ? "c" : item.status === "NC" ? "nc" : "ni";
       var label = item.status === "C" ? "CONFORME" : item.status === "NC" ? "NÃO CONF." : "N/I";
       var fotosNC = item.photos.filter(function(p){ return p.isNC; }).length;
@@ -834,6 +849,7 @@ function exportarRelatorio() {
     txt += "Conformes: " + def.conformes + "   Nao conformes: " + def.nconformes + "\n";
     var lastCat = "";
     def.items.forEach(function(item, i) {
+      if (item.status === null) return; // ignora não inspecionados
       if (item.cat !== lastCat) { txt += "\n  [ " + item.cat.toUpperCase() + " ]\n"; lastCat = item.cat; }
       var status = item.status === "C" ? "CONFORME" : item.status === "NC" ? "NAO CONFORME" : "NAO INSPECIONADO";
       txt += "  " + String(i+1).padStart(2,"0") + ". " + displayName(item.name) + "\n";
@@ -962,41 +978,58 @@ function gerarPDF(apenasNC) {
   }
 
   // ── CABEÇALHO ──
+  var pdfTitulo = (document.getElementById("pdf-titulo") && document.getElementById("pdf-titulo").value.trim())
+    ? document.getElementById("pdf-titulo").value.trim()
+    : "VISTORIA DE DEFENSAS METALICAS";
+  var pdfSubtitulo = (document.getElementById("pdf-subtitulo") && document.getElementById("pdf-subtitulo").value.trim())
+    ? document.getElementById("pdf-subtitulo").value.trim()
+    : "NBR 15486 / NBR 6971";
+
+  var altCab = pdfSubtitulo ? 32 : 26;
   doc.setFillColor(26, 111, 181);
-  doc.rect(0, 0, PW, 28, "F");
+  doc.rect(0, 0, PW, altCab, "F");
   doc.setFontSize(14); doc.setTextColor(255, 255, 255);
-  doc.text("VISTORIA DE DEFENSAS METALICAS", M, 11);
-  doc.setFontSize(8); doc.setTextColor(180, 180, 200);
-  doc.text("NBR 15486 / NBR 6971", M, 17);
-  doc.setFontSize(8); doc.setTextColor(160, 160, 180);
-  var tipo = apenasNC ? "RELATORIO — APENAS NAO CONFORMES" : "RELATORIO COMPLETO";
-  doc.text(tipo, M, 22);
-  y = 34;
+  doc.text(pdfTitulo.toUpperCase(), M, 11);
+  if (pdfSubtitulo) {
+    doc.setFontSize(9); doc.setTextColor(220, 235, 255);
+    doc.text(pdfSubtitulo, M, 19);
+  }
+  doc.setFontSize(7); doc.setTextColor(180, 210, 255);
+  var tipo = apenasNC ? "Apenas nao conformes" : "Relatorio completo";
+  doc.text(tipo + "  —  " + dataFmt, M, altCab - 3);
+  y = altCab + 8;
 
-  // ── DADOS GERAIS ──
-  doc.setFontSize(9); doc.setTextColor(corTit[0], corTit[1], corTit[2]);
-  var todasItems = defensasRegistradas.reduce(function(a,b){return a.concat(b.items);}, []);
-  var totC  = todasItems.filter(function(i){return i.status==="C";}).length;
-  var totNC = todasItems.filter(function(i){return i.status==="NC";}).length;
-  var totNI = todasItems.filter(function(i){return i.status===null;}).length;
+  // ── CONTAGEM DE DEFENSAS ──
+  var defOK = defensasRegistradas.filter(function(def) {
+    return !def.items.some(function(i) { return i.status === "NC"; });
+  }).length;
+  var defNC = defensasRegistradas.filter(function(def) {
+    return def.items.some(function(i) { return i.status === "NC"; });
+  }).length;
 
-  doc.text("Data: " + dataFmt, M, y);
-  doc.text("Rodovia: " + (d.rodovia||"—") + "   Sentido: " + (d.sentido||"—") + "   Posicao: " + (d.posicao||"—"), M, y+5);
-  doc.text("Tipo: " + (d.tipo||"—") + "   Nivel: " + (d.nivel||"—") + "   Instalacao: " + (d.instalacao||"—"), M, y+10);
-  y += 17;
+  var bw = (CW - 6) / 2;
+  // Card conformes
+  doc.setFillColor(235, 250, 242);
+  doc.roundedRect(M, y, bw, 18, 2, 2, "F");
+  doc.setDrawColor(40, 180, 100); doc.setLineWidth(0.4);
+  doc.roundedRect(M, y, bw, 18, 2, 2, "S");
+  doc.setFontSize(20); doc.setTextColor(26, 120, 70);
+  doc.text(String(defOK), M + bw/2, y + 11, {align:"center"});
+  doc.setFontSize(7); doc.setTextColor(60, 140, 90);
+  doc.text("DEFENSAS OK", M + bw/2, y + 16, {align:"center"});
 
-  // totais
-  var bw = CW / 3 - 2;
-  [[totC,"CONFORMES",corC],[totNC,"NAO CONFORMES",corNC],[totNI,"NAO INSP.",corMut]].forEach(function(item, i) {
-    var bx = M + i * (bw + 3);
-    doc.setFillColor(245, 245, 248);
-    doc.roundedRect(bx, y, bw, 14, 2, 2, "F");
-    doc.setFontSize(16); doc.setTextColor(item[2][0], item[2][1], item[2][2]);
-    doc.text(String(item[0]), bx + bw/2, y + 8, {align:"center"});
-    doc.setFontSize(7); doc.setTextColor(corMut[0], corMut[1], corMut[2]);
-    doc.text(item[1], bx + bw/2, y + 13, {align:"center"});
-  });
-  y += 20;
+  // Card não conformes
+  var bx2 = M + bw + 6;
+  doc.setFillColor(252, 238, 238);
+  doc.roundedRect(bx2, y, bw, 18, 2, 2, "F");
+  doc.setDrawColor(220, 50, 60); doc.setLineWidth(0.4);
+  doc.roundedRect(bx2, y, bw, 18, 2, 2, "S");
+  doc.setFontSize(20); doc.setTextColor(180, 30, 40);
+  doc.text(String(defNC), bx2 + bw/2, y + 11, {align:"center"});
+  doc.setFontSize(7); doc.setTextColor(200, 50, 60);
+  doc.text("PRECISAM ATENCAO", bx2 + bw/2, y + 16, {align:"center"});
+
+  y += 26;
 
   // ── DEFENSAS ──
   defensasRegistradas.forEach(function(def, idx) {
@@ -1027,73 +1060,92 @@ function gerarPDF(apenasNC) {
     y += linha3 ? 19 : 18;
 
     itensParaExibir.forEach(function(item) {
+      if (item.status === null) return; // ignora não inspecionados
       var fotos = item.photos || [];
       var fotosExibir = apenasNC
         ? fotos.filter(function(p){ return p.isNC; })
         : fotos;
       var temFoto = fotosExibir.length > 0;
-      var alturaMin = temFoto ? 38 : 16;
-      checkPage(alturaMin + 4);
+
+      var fW = (CW - 10) / 2;  // largura de cada foto (2 por linha)
+      var fH = 55;              // altura de cada foto
+      var labelH = 7;           // altura do label acima
+      var linhas = temFoto ? Math.ceil(fotosExibir.length / 2) : 0;
+      var alturaTexto = 16 + (item.obs ? 7 : 0);
+      var alturaFotos = temFoto ? linhas * (labelH + fH + 5) : 0;
+      var alturaItem  = alturaTexto + alturaFotos + 4;
+
+      checkPage(alturaItem + 6);
 
       // fundo do item
       var bgColor = item.status === "NC" ? [255,245,245] : item.status === "C" ? [245,255,250] : [248,248,248];
       doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-      var alturaItem = temFoto ? Math.ceil(fotosExibir.length / 3) * 36 + 20 : 16;
       doc.rect(M, y, CW, alturaItem, "F");
 
       // badge status
-      var sCor = item.status==="NC" ? corNC : item.status==="C" ? corC : [160,160,160];
-      var sLabel = item.status==="NC" ? "NAO CONFORME" : item.status==="C" ? "CONFORME" : "N/I";
+      var sCor  = item.status === "NC" ? corNC : item.status === "C" ? corC : [160,160,160];
+      var sLabel = item.status === "NC" ? "NAO CONFORME" : item.status === "C" ? "CONFORME" : "N/I";
       doc.setFillColor(sCor[0], sCor[1], sCor[2]);
       doc.roundedRect(PW-M-30, y+2, 29, 5, 1, 1, "F");
       doc.setFontSize(6); doc.setTextColor(255,255,255);
       doc.text(sLabel, PW-M-15.5, y+5.5, {align:"center"});
 
       // nome do item
-      doc.setFontSize(8); doc.setTextColor(corTit[0],corTit[1],corTit[2]);
-      var nomeH = textoQuebrado(displayName(item.name), M+3, y+6, CW-38, 8, corTit);
-      var yConteudo = y + 6 + nomeH;
+      var nomeH = textoQuebrado(displayName(item.name), M+3, y+7, CW-38, 8, corTit);
+      var yConteudo = y + 7 + nomeH;
 
       // observação
       if (item.obs) {
-        doc.setFontSize(7); doc.setTextColor(80,80,80);
-        var obsH = textoQuebrado("Obs: " + item.obs, M+3, yConteudo+2, CW-10, 7, [80,80,80]);
-        yConteudo += obsH + 4;
+        textoQuebrado("Obs: " + item.obs, M+3, yConteudo+2, CW-10, 7, [80,80,80]);
+        yConteudo += 9;
       }
 
-      // fotos lado a lado (3 por linha)
+      yConteudo += 3; // margem antes das fotos
+
+      // fotos — 2 por linha, label acima de cada foto
       if (temFoto) {
-        var fW = (CW - 8) / 3;
-        var fH = 30;
         fotosExibir.forEach(function(foto, fi) {
-          var fx = M + 3 + (fi % 3) * (fW + 2);
-          var fy = yConteudo + Math.floor(fi / 3) * (fH + 4);
-          checkPage(fH + 6);
+          var col = fi % 2;
+          var row = Math.floor(fi / 2);
+          var fx      = M + 3 + col * (fW + 4);
+          var fyLabel = yConteudo + row * (labelH + fH + 5);
+          var fy      = fyLabel + labelH;
+
+          // label acima da foto
+          doc.setFontSize(6.5);
+          var lCor = foto.isNC ? corNC : corMut;
+          doc.setTextColor(lCor[0], lCor[1], lCor[2]);
+          var labelTxt = foto.isNC ? "Nao conforme" : "Foto geral";
+          if (foto.ts) labelTxt += "  " + foto.ts;
+          doc.text(labelTxt, fx, fyLabel + 5);
+
           try {
             var ext = foto.src.indexOf("image/png") > -1 ? "PNG" : "JPEG";
             doc.addImage(foto.src, ext, fx, fy, fW, fH);
+
+            // borda vermelha NC
             if (foto.isNC) {
-              doc.setDrawColor(corNC[0],corNC[1],corNC[2]);
-              doc.setLineWidth(0.5);
+              doc.setDrawColor(corNC[0], corNC[1], corNC[2]);
+              doc.setLineWidth(0.7);
               doc.rect(fx, fy, fW, fH);
-              doc.setFontSize(5); doc.setTextColor(corNC[0],corNC[1],corNC[2]);
-              doc.text("NC", fx+1, fy+4);
             }
+
+            // GPS
             if (foto.gps) {
-              doc.setFontSize(5); doc.setTextColor(corMut[0],corMut[1],corMut[2]);
-              doc.text(foto.gps.lat + "," + foto.gps.lng, fx+1, fy+fH-1);
+              doc.setFillColor(0,0,0,0.5);
+              doc.setFontSize(5); doc.setTextColor(255,255,255);
+              doc.text(foto.gps.lat + ", " + foto.gps.lng, fx+1.5, fy+fH-2);
             }
           } catch(e) {}
         });
-        y += alturaItem + 3;
-      } else {
-        y += alturaItem + 2;
       }
+
+      y += alturaItem + 2;
 
       doc.setDrawColor(corLin[0],corLin[1],corLin[2]);
       doc.setLineWidth(0.1);
       doc.line(M, y, PW-M, y);
-      y += 1;
+      y += 2;
     });
     y += 4;
   });
