@@ -1044,7 +1044,7 @@ function gerarPDF(apenasNC) {
     doc.setFontSize(9); doc.setTextColor(255, 255, 255);
     doc.text("DEFENSA — " + (def.rodovia ? def.rodovia + " " : "") + def.km + (def.sentido ? " " + def.sentido : ""), M+3, y+6.5);
     doc.setFontSize(8); doc.setTextColor(220, 235, 255);
-    doc.text(def.timestamp + (def.extensao ? "   " + def.extensao + "m" : ""), PW-M-3, y+6.5, {align:"right"});
+    doc.text(def.extensao ? def.extensao + "m" : "", PW-M-3, y+6.5, {align:"right"});
     y += 12;
 
     // dados da defensa
@@ -1061,91 +1061,105 @@ function gerarPDF(apenasNC) {
 
     itensParaExibir.forEach(function(item) {
       if (item.status === null) return; // ignora não inspecionados
+
       var fotos = item.photos || [];
       var fotosExibir = apenasNC
         ? fotos.filter(function(p){ return p.isNC; })
         : fotos;
       var temFoto = fotosExibir.length > 0;
 
-      var fW = (CW - 10) / 2;  // largura de cada foto (2 por linha)
-      var fH = 55;              // altura de cada foto
-      var labelH = 7;           // altura do label acima
-      var linhas = temFoto ? Math.ceil(fotosExibir.length / 2) : 0;
-      var alturaTexto = 16 + (item.obs ? 7 : 0);
-      var alturaFotos = temFoto ? linhas * (labelH + fH + 5) : 0;
-      var alturaItem  = alturaTexto + alturaFotos + 4;
+      // dimensões
+      var fH = 68;              // altura da foto
+      var fW = 90;              // largura da foto (lado esquerdo)
+      var txtX = M + fW + 6;   // x do texto (lado direito)
+      var txtW = CW - fW - 6;  // largura disponível para texto
 
-      checkPage(alturaItem + 6);
-
-      // fundo do item
-      var bgColor = item.status === "NC" ? [255,245,245] : item.status === "C" ? [245,255,250] : [248,248,248];
-      doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-      doc.rect(M, y, CW, alturaItem, "F");
-
-      // badge status
-      var sCor  = item.status === "NC" ? corNC : item.status === "C" ? corC : [160,160,160];
-      var sLabel = item.status === "NC" ? "NAO CONFORME" : item.status === "C" ? "CONFORME" : "N/I";
-      doc.setFillColor(sCor[0], sCor[1], sCor[2]);
-      doc.roundedRect(PW-M-30, y+2, 29, 5, 1, 1, "F");
-      doc.setFontSize(6); doc.setTextColor(255,255,255);
-      doc.text(sLabel, PW-M-15.5, y+5.5, {align:"center"});
-
-      // nome do item
-      var nomeH = textoQuebrado(displayName(item.name), M+3, y+7, CW-38, 8, corTit);
-      var yConteudo = y + 7 + nomeH;
-
-      // observação
-      if (item.obs) {
-        textoQuebrado("Obs: " + item.obs, M+3, yConteudo+2, CW-10, 7, [80,80,80]);
-        yConteudo += 9;
-      }
-
-      yConteudo += 3; // margem antes das fotos
-
-      // fotos — 2 por linha, label acima de cada foto
       if (temFoto) {
+        // um bloco por foto — título à direita
         fotosExibir.forEach(function(foto, fi) {
-          var col = fi % 2;
-          var row = Math.floor(fi / 2);
-          var fx      = M + 3 + col * (fW + 4);
-          var fyLabel = yConteudo + row * (labelH + fH + 5);
-          var fy      = fyLabel + labelH;
+          var alturaBloco = fH + 6;
+          checkPage(alturaBloco + 4);
 
-          // label acima da foto
-          doc.setFontSize(6.5);
-          var lCor = foto.isNC ? corNC : corMut;
-          doc.setTextColor(lCor[0], lCor[1], lCor[2]);
-          var labelTxt = foto.isNC ? "Nao conforme" : "Foto geral";
-          if (foto.ts) labelTxt += "  " + foto.ts;
-          doc.text(labelTxt, fx, fyLabel + 5);
+          var blocoY = y;
 
+          // fundo do bloco
+          var bgColor = item.status === "NC" ? [255,245,245] : [245,255,250];
+          doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+          doc.rect(M, blocoY, CW, alturaBloco, "F");
+
+          // foto à esquerda
           try {
             var ext = foto.src.indexOf("image/png") > -1 ? "PNG" : "JPEG";
-            doc.addImage(foto.src, ext, fx, fy, fW, fH);
-
-            // borda vermelha NC
+            doc.addImage(foto.src, ext, M + 2, blocoY + 3, fW, fH);
             if (foto.isNC) {
               doc.setDrawColor(corNC[0], corNC[1], corNC[2]);
               doc.setLineWidth(0.7);
-              doc.rect(fx, fy, fW, fH);
+              doc.rect(M + 2, blocoY + 3, fW, fH);
             }
-
-            // GPS
             if (foto.gps) {
-              doc.setFillColor(0,0,0,0.5);
-              doc.setFontSize(5); doc.setTextColor(255,255,255);
-              doc.text(foto.gps.lat + ", " + foto.gps.lng, fx+1.5, fy+fH-2);
+              doc.setFontSize(5); doc.setTextColor(200,200,200);
+              doc.text(foto.gps.lat + ", " + foto.gps.lng, M+3, blocoY + 3 + fH - 2);
             }
           } catch(e) {}
+
+          // título à direita
+          var sCor  = item.status === "NC" ? corNC : corC;
+          var sLabel = item.status === "NC" ? "NAO CONFORME" : "CONFORME";
+          doc.setFillColor(sCor[0], sCor[1], sCor[2]);
+          doc.roundedRect(txtX, blocoY + 3, txtW, 5, 1, 1, "F");
+          doc.setFontSize(6); doc.setTextColor(255,255,255);
+          doc.text(sLabel, txtX + txtW/2, blocoY + 6.5, {align:"center"});
+
+          doc.setFontSize(8); doc.setTextColor(corTit[0], corTit[1], corTit[2]);
+          var linhasNome = doc.splitTextToSize(displayName(item.name), txtW);
+          doc.text(linhasNome, txtX, blocoY + 14);
+          var yObs = blocoY + 14 + linhasNome.length * 4.5;
+
+          if (item.obs && fi === 0) {
+            doc.setFontSize(7); doc.setTextColor(80,80,80);
+            var linhasObs = doc.splitTextToSize("Obs: " + item.obs, txtW);
+            doc.text(linhasObs, txtX, yObs + 2);
+          }
+
+          y += alturaBloco + 2;
+
+          doc.setDrawColor(corLin[0], corLin[1], corLin[2]);
+          doc.setLineWidth(0.1);
+          doc.line(M, y, PW-M, y);
+          y += 2;
         });
+
+      } else {
+        // sem foto — linha simples
+        var alturaBloco = 14 + (item.obs ? 7 : 0);
+        checkPage(alturaBloco + 4);
+
+        var bgColor = item.status === "NC" ? [255,245,245] : [245,255,250];
+        doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+        doc.rect(M, y, CW, alturaBloco, "F");
+
+        var sCor  = item.status === "NC" ? corNC : corC;
+        var sLabel = item.status === "NC" ? "NAO CONFORME" : "CONFORME";
+        doc.setFillColor(sCor[0], sCor[1], sCor[2]);
+        doc.roundedRect(PW-M-30, y+2, 29, 5, 1, 1, "F");
+        doc.setFontSize(6); doc.setTextColor(255,255,255);
+        doc.text(sLabel, PW-M-15.5, y+5.5, {align:"center"});
+
+        doc.setFontSize(8); doc.setTextColor(corTit[0], corTit[1], corTit[2]);
+        doc.text(displayName(item.name), M+3, y+7);
+
+        if (item.obs) {
+          doc.setFontSize(7); doc.setTextColor(80,80,80);
+          doc.text("Obs: " + item.obs, M+3, y+13);
+        }
+
+        y += alturaBloco + 2;
+
+        doc.setDrawColor(corLin[0], corLin[1], corLin[2]);
+        doc.setLineWidth(0.1);
+        doc.line(M, y, PW-M, y);
+        y += 2;
       }
-
-      y += alturaItem + 2;
-
-      doc.setDrawColor(corLin[0],corLin[1],corLin[2]);
-      doc.setLineWidth(0.1);
-      doc.line(M, y, PW-M, y);
-      y += 2;
     });
     y += 4;
   });
@@ -1155,7 +1169,7 @@ function gerarPDF(apenasNC) {
   for (var p = 1; p <= totalPag; p++) {
     doc.setPage(p);
     doc.setFontSize(7); doc.setTextColor(corMut[0],corMut[1],corMut[2]);
-    doc.text("Defensa Inspector · " + dataFmt, M, PH-6);
+    doc.text("Defensa Inspector — NBR 15486", M, PH-6);
     doc.text("Pag. " + p + "/" + totalPag, PW-M, PH-6, {align:"right"});
   }
 
