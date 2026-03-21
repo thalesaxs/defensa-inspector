@@ -14,21 +14,21 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#0f1117; --surface:#181c27; --surface2:#1f2435; --border:#2a3050;
-    --accent:#f0b429; --accent2:#3dd68c; --danger:#ff5a5f;
-    --text:#e8eaf0; --muted:#7b82a0;
+    --bg:#f4f5f7; --surface:#ffffff; --surface2:#eef0f4; --border:#d0d5e0;
+    --accent:#1a6fb5; --accent2:#1a9e5c; --danger:#d93025;
+    --text:#1a1d2e; --muted:#6b7280;
     --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:14px;overscroll-behavior:none;}
 
-  header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
-  .logo{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;}
-  .header-meta{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:right;line-height:1.5;}
+  header{position:sticky;top:0;z-index:100;background:#1a6fb5;border-bottom:1px solid #1559a0;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#ffffff;text-transform:uppercase;}
+  .header-meta{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.75);text-align:right;line-height:1.5;}
 
-  .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:57px;z-index:99;}
+  .tabs{display:flex;border-bottom:1px solid var(--border);background:#ffffff;position:sticky;top:57px;z-index:99;}
   .tab{flex:1;padding:10px 4px;font-family:var(--mono);font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
-  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab.active{color:#1a6fb5;border-bottom-color:#1a6fb5;}
 
   .screen{display:none;padding:16px;padding-bottom:120px;animation:fadeIn .25s ease;}
   .screen.active{display:block;}
@@ -99,7 +99,7 @@
   .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease;}
 
   /* botões gerais */
-  .btn-primary{display:block;width:100%;padding:14px;background:var(--accent);color:#000;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border:none;border-radius:8px;cursor:pointer;transition:opacity .15s;}
+  .btn-primary{display:block;width:100%;padding:14px;background:#1a6fb5;color:#ffffff;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border:none;border-radius:8px;cursor:pointer;transition:opacity .15s;}
   .btn-primary:hover{opacity:.88;}
   .btn-secondary{display:block;width:100%;padding:12px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.06em;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .2s,color .2s;margin-top:8px;}
   .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
@@ -125,6 +125,16 @@
   .rel-item-status.c{color:var(--accent2);}
   .rel-item-status.nc{color:var(--danger);}
   .rel-item-obs{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  /* checkbox seleção relatório */
+  .rel-check {
+    width:18px;height:18px;border-radius:4px;border:1px solid var(--border);
+    background:var(--surface2);cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s,border-color .15s;
+  }
+  .rel-check.marcado { background:var(--accent);border-color:var(--accent); }
+  .rel-check.marcado::after { content:'✓';color:#000;font-size:11px;font-weight:700; }
 
   /* export bar */
   .export-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 16px;z-index:200;display:flex;gap:8px;}
@@ -160,6 +170,17 @@
   </div>
 
   <div class="section-title">Dados da Rodovia</div>
+
+  <!-- Toggle manter dados -->
+  <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;">
+    <div>
+      <div style="font-size:13px;font-weight:500;">Manter dados ao finalizar</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Pré-preenche rodovia, sentido, posição, tipo, nível e instalação na próxima defensa</div>
+    </div>
+    <div onclick="toggleManterDados()" id="toggle-manter" style="width:40px;height:22px;border-radius:11px;background:var(--border);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;margin-left:12px;">
+      <div id="toggle-manter-bolinha" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;"></div>
+    </div>
+  </div>
 
   <div class="field-group">
     <label class="field-label">Rodovia</label>
@@ -232,21 +253,6 @@
   </div>
 
   <button class="btn-primary" onclick="iniciarVistoria()">Iniciar Vistoria →</button>
-
-  <!-- Rascunho -->
-  <div style="display:flex;gap:8px;margin-top:10px;">
-    <button class="btn-secondary" style="margin-top:0;flex:1;" onclick="salvarRascunho()">💾 Salvar rascunho</button>
-    <label style="flex:1;margin-top:0;display:block;padding:12px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.06em;border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;transition:border-color .2s,color .2s;" id="label-carregar">
-      📂 Carregar rascunho
-      <input type="file" accept=".json" onchange="carregarRascunho(this)" style="display:none;">
-    </label>
-  </div>
-
-  <div id="defensas-lista-wrap" style="display:none;margin-top:24px;">
-    <div class="section-title">Defensas Registradas Hoje</div>
-    <div id="defensas-lista"></div>
-    <button class="btn-secondary" onclick="novaDefensa()">+ Nova Defensa</button>
-  </div>
 </div>
 
 <!-- ABA: VISTORIA -->
@@ -268,15 +274,6 @@
 <!-- ABA: RELATÓRIO -->
 <div class="screen" id="screen-relatorio">
   <div class="rel-card">
-    <div class="rel-card-title">Resumo da Inspeção</div>
-    <div id="rel-meta" style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:12px;"></div>
-    <div class="rel-stat-row">
-      <div class="rel-stat"><div class="rel-stat-num green" id="stat-c">0</div><div class="rel-stat-label">Conformes</div></div>
-      <div class="rel-stat"><div class="rel-stat-num red" id="stat-nc">0</div><div class="rel-stat-label">Não conformes</div></div>
-      <div class="rel-stat"><div class="rel-stat-num yellow" id="stat-ni">0</div><div class="rel-stat-label">Não inspecion.</div></div>
-    </div>
-  </div>
-  <div class="rel-card">
     <div class="rel-card-title">Itens Inspecionados</div>
     <div id="rel-items"></div>
   </div>
@@ -284,9 +281,14 @@
 </div>
 
 <div class="export-bar" id="export-bar" style="display:none">
-  <button class="btn-primary" style="flex:1" onclick="gerarPDF(false)">↓ PDF Completo</button>
-  <button class="btn-secondary" style="margin:0;flex:1" onclick="gerarPDF(true)">↓ PDF Não conformes</button>
-  <button onclick="compartilhar()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:0 12px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;">⇧</button>
+  <div style="display:flex;flex-direction:column;gap:6px;width:100%;">
+    <div style="display:flex;gap:6px;">
+      <button class="btn-primary" style="flex:1;padding:10px;" onclick="gerarPDF(false)">↓ PDF Completo</button>
+      <button class="btn-secondary" style="margin:0;flex:1;padding:10px;" onclick="gerarPDF(true)">↓ PDF NC</button>
+      <button onclick="compartilhar()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:0 12px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;">⇧</button>
+    </div>
+    <button id="btn-pdf-sel" onclick="gerarPDFSelecionados()" style="display:none;width:100%;padding:10px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:.06em;border-radius:8px;cursor:pointer;" id="btn-pdf-sel">↓ PDF Selecionados (<span id="contador-sel">0</span>)</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -357,7 +359,21 @@ function displayName(key) {
 var activeTab = "dados";
 var defensasRegistradas = [];
 var allItems = [];
-var ultimosFixos = null; // guarda rodovia, sentido e posição da última defensa
+var ultimosFixos = null;
+var manterDados = false;
+
+function toggleManterDados() {
+  manterDados = !manterDados;
+  var toggle = document.getElementById("toggle-manter");
+  var bolinha = document.getElementById("toggle-manter-bolinha");
+  if (manterDados) {
+    toggle.style.background = "var(--accent2)";
+    bolinha.style.left = "20px";
+  } else {
+    toggle.style.background = "var(--border)";
+    bolinha.style.left = "2px";
+  }
+} // guarda rodovia, sentido e posição da última defensa
 
 function makeItems() {
   var items = [];
@@ -406,12 +422,13 @@ function showTab(tab) {
   var exportBar = document.getElementById("export-bar");
   if (tab === "relatorio") { buildRelatorio(); exportBar.style.display = "flex"; }
   else { exportBar.style.display = "none"; }
-  if (tab === "dados" && ultimosFixos) {
+  if (tab === "dados" && ultimosFixos && manterDados) {
     document.getElementById("f-rodovia").value = ultimosFixos.rodovia || "";
-    var sel = document.getElementById("f-sentido");
-    for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === ultimosFixos.sentido) { sel.selectedIndex = i; break; } }
-    var pos = document.getElementById("f-posicao");
-    for (var j = 0; j < pos.options.length; j++) { if (pos.options[j].value === ultimosFixos.posicao) { pos.selectedIndex = j; break; } }
+    setSelect("f-sentido", ultimosFixos.sentido);
+    setSelect("f-posicao", ultimosFixos.posicao);
+    setSelect("f-tipo", ultimosFixos.tipo);
+    setSelect("f-nivel", ultimosFixos.nivel);
+    setSelect("f-instalacao", ultimosFixos.instalacao);
   }
   if (tab === "vistoria") { buildChecklist(); updateProgress(); }
   window.scrollTo(0, 0);
@@ -434,14 +451,18 @@ function finalizarDefensa() {
     if (foto) { gpsDefensa = foto.gps; break; }
   }
   defensasRegistradas.push({
-    km: d.km, gps: gpsDefensa, extensao: d.extensao,
+    km: d.km, gps: gpsDefensa, extensao: d.extensao, sentido: d.sentido,
+    rodovia: d.rodovia, posicao: d.posicao, tipo: d.tipo, nivel: d.nivel, instalacao: d.instalacao,
     items: JSON.parse(JSON.stringify(allItems)),
     timestamp: new Date().toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}),
     conformes: c, nconformes: nc
   });
 
-  // salva os campos que se repetem
-  ultimosFixos = { rodovia: d.rodovia, sentido: d.sentido, posicao: d.posicao };
+  // salva os campos fixos sempre (para o toggle poder restaurar)
+  ultimosFixos = {
+    rodovia: d.rodovia, sentido: d.sentido, posicao: d.posicao,
+    tipo: d.tipo, nivel: d.nivel, instalacao: d.instalacao
+  };
 
   allItems = makeItems();
   // limpa só os campos que mudam a cada defensa
@@ -536,24 +557,7 @@ function setSelect(id, val) {
 }
 
 function atualizarListaDefensas() {
-  var wrap = document.getElementById("defensas-lista-wrap");
-  var lista = document.getElementById("defensas-lista");
-  if (defensasRegistradas.length === 0) { wrap.style.display = "none"; return; }
-  wrap.style.display = "block";
-  lista.innerHTML = defensasRegistradas.map(function(def, idx) {
-    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">'
-      + '<div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--accent);">' + (idx+1) + '</div>'
-      + '<div style="flex:1;">'
-        + '<div style="font-size:13px;font-weight:600;">' + def.km + '</div>'
-        + '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);">'
-          + def.timestamp + ' &nbsp;|&nbsp; '
-          + '<span style="color:var(--accent2);">✓' + def.conformes + '</span> &nbsp; '
-          + '<span style="color:var(--danger);">✗' + def.nconformes + '</span>'
-          + (def.extensao ? ' &nbsp;| ' + def.extensao + 'm' : '')
-        + '</div>'
-      + '</div>'
-    + '</div>';
-  }).join("");
+  // elemento removido do HTML — função mantida para não quebrar chamadas existentes
 }
 
 // ── CHECKLIST ──
@@ -570,7 +574,7 @@ function buildChecklist() {
   catOrder.forEach(function(cat, ci) {
     var catId = "cat-" + ci;
     var entries = cats[cat];
-    html += '<div class="cat-section" id="' + catId + '" style="margin-top:' + (ci > 0 ? "12px" : "0") + '">';
+    html += '<div class="cat-section collapsed" id="' + catId + '" style="margin-top:' + (ci > 0 ? "12px" : "0") + '">';
     html += '<div class="cat-header" onclick="toggleCat(\'' + catId + '\')">';
     html += '<span class="cat-header-label">' + displayName(cat) + '</span>';
     html += '<div class="cat-badges"><span class="cat-badge-c" id="' + catId + '-c">—</span><span class="cat-badge-nc" id="' + catId + '-nc"></span></div>';
@@ -721,49 +725,83 @@ function updateProgress() {
 
 // ── RELATÓRIO ──
 function buildRelatorio() {
+  defensasSelecionadas = {};
+  var btn = document.getElementById("btn-pdf-sel");
+  if (btn) btn.style.display = "none";
   var d = getData();
   var today = new Date();
-  var todasItems = defensasRegistradas.reduce(function(acc, def) { return acc.concat(def.items); }, []);
-  var conformes = todasItems.filter(function(i) { return i.status === "C"; }).length;
-  var nconformes = todasItems.filter(function(i) { return i.status === "NC"; }).length;
-  var ninspect = todasItems.filter(function(i) { return i.status === null; }).length;
-  document.getElementById("stat-c").textContent = conformes;
-  document.getElementById("stat-nc").textContent = nconformes;
-  document.getElementById("stat-ni").textContent = ninspect;
-  document.getElementById("rel-meta").innerHTML =
-    "<b>Data:</b> " + today.toLocaleDateString("pt-BR") + "<br>" +
-    "<b>Rodovia:</b> " + (d.rodovia || "—") + " &nbsp;|&nbsp; <b>Sentido:</b> " + (d.sentido || "—") + "<br>" +
-    "<b>Posição:</b> " + (d.posicao || "—") + " &nbsp;|&nbsp; <b>Tipo:</b> " + (d.tipo || "—") + "<br>" +
-    "<b>Nível:</b> " + (d.nivel || "—") + " &nbsp;|&nbsp; <b>Instalação:</b> " + (d.instalacao || "—") + "<br>" +
-    "<b>Defensas inspecionadas:</b> " + defensasRegistradas.length;
-
+  var conformes  = defensasRegistradas.filter(function(def) {
+    return def.items.every(function(i) { return i.status !== "NC"; });
+  }).length;
+  var nconformes = defensasRegistradas.filter(function(def) {
+    return def.items.some(function(i) { return i.status === "NC"; });
+  }).length;
   if (defensasRegistradas.length === 0) {
     document.getElementById("rel-items").innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:12px 0;">Nenhuma defensa finalizada ainda.</div>';
     return;
   }
   var html = "";
   defensasRegistradas.forEach(function(def, idx) {
-    html += '<div style="margin-bottom:16px;">';
-    html += '<div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;">';
-    html += '<span>Defensa ' + (idx+1) + ' — ' + def.km + '</span>';
-    html += '<span style="color:var(--muted);">' + def.timestamp + (def.extensao ? ' · ' + def.extensao + 'm' : '') + '</span></div>';
-    if (def.gps) html += '<div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:6px;">📍 ' + def.gps.lat + ', ' + def.gps.lng + ' ±' + def.gps.acc + 'm</div>';
+    var c = def.items.filter(function(i){ return i.status === "C"; }).length;
+    var nc = def.items.filter(function(i){ return i.status === "NC"; }).length;
+    var ni = def.items.filter(function(i){ return i.status === null; }).length;
+    var temNC = nc > 0;
+    var corTit = temNC ? "var(--danger)" : "var(--accent2)";
+    var corBorda = temNC ? "var(--danger)" : "var(--accent2)";
+
+    html += '<div style="margin-bottom:10px;">';
+
+    // ── cabeçalho clicável ──
+    html += '<div onclick="toggleRelDef(' + idx + ')" style="background:var(--surface2);border:1px solid ' + corBorda + ';border-radius:8px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none;">';
+    html += '<div class="rel-check" id="chk-def-' + idx + '" onclick="event.stopPropagation();toggleCheckDef(this,' + idx + ')" title="Selecionar para PDF"></div>';
+    html += '<div style="flex:1;">';
+    html += '<div style="font-family:var(--mono);font-size:10px;color:' + corTit + ';letter-spacing:.07em;text-transform:uppercase;">Defensa — ' + (def.rodovia ? def.rodovia + ' ' : '') + def.km + (def.sentido ? ' ' + def.sentido : '') + '</div>';
+    html += '<div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">';
+    html += def.timestamp + (def.extensao ? ' · ' + def.extensao + 'm' : '');
+    html += ' &nbsp;|&nbsp; <span style="color:var(--accent2)">✓' + c + '</span> <span style="color:var(--danger)">✗' + nc + '</span>';
+    if (ni > 0) html += ' <span style="color:var(--muted)">·' + ni + '</span>';
+    html += '</div></div>';
+    html += '<span id="arr-def-' + idx + '" style="font-family:var(--mono);font-size:11px;color:var(--muted);transition:transform .2s;">▾</span>';
+    html += '<button onclick="event.stopPropagation();confirmarExclusao(' + idx + ')" style="background:rgba(255,90,95,.15);border:1px solid var(--danger);color:var(--danger);font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer;" title="Excluir">✕</button>';
+    html += '</div>';
+
+    // ── confirmação exclusão ──
+    html += '<div id="confirma-excluir-' + idx + '" style="display:none;background:rgba(255,90,95,.1);border:1px solid var(--danger);border-radius:6px;padding:8px 12px;margin-top:4px;align-items:center;justify-content:space-between;gap:8px;">';
+    html += '<span style="font-size:12px;color:var(--danger);font-family:var(--mono);">Confirma exclusão?</span>';
+    html += '<div style="display:flex;gap:6px;">';
+    html += '<button onclick="excluirDefensa(' + idx + ')" style="background:var(--danger);border:none;color:#fff;font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;">Sim</button>';
+    html += '<button onclick="cancelarExclusao(' + idx + ')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;">Não</button>';
+    html += '</div></div>';
+
+    // ── conteúdo colapsável ──
+    html += '<div id="rel-def-' + idx + '" style="display:none;margin-top:6px;">';
+
+    // dados
+    html += '<div style="font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:8px;padding:8px 10px;background:var(--surface2);border-radius:6px;">';
+    html += '<b style="color:var(--text)">Rodovia:</b> ' + (def.rodovia||'—') + ' &nbsp;|&nbsp; <b style="color:var(--text)">Sentido:</b> ' + (def.sentido||'—') + ' &nbsp;|&nbsp; <b style="color:var(--text)">Posição:</b> ' + (def.posicao||'—') + '<br>';
+    html += '<b style="color:var(--text)">Tipo:</b> ' + (def.tipo||'—') + ' &nbsp;|&nbsp; <b style="color:var(--text)">Nível:</b> ' + (def.nivel||'—') + ' &nbsp;|&nbsp; <b style="color:var(--text)">Instalação:</b> ' + (def.instalacao||'—') + '<br>';
+    if (def.extensao) html += '<b style="color:var(--text)">Extensão:</b> ' + def.extensao + 'm &nbsp;';
+    if (def.gps) html += '&nbsp;<b style="color:var(--text)">GPS:</b> ' + def.gps.lat + ', ' + def.gps.lng + ' ±' + def.gps.acc + 'm';
+    html += '</div>';
+
+    // itens
     def.items.forEach(function(item) {
       var cls = item.status === "C" ? "c" : item.status === "NC" ? "nc" : "ni";
       var label = item.status === "C" ? "CONFORME" : item.status === "NC" ? "NÃO CONF." : "N/I";
-      var fotosNC = item.photos.filter(function(p) { return p.isNC; }).length;
-      var fotosG = item.photos.filter(function(p) { return !p.isNC; }).length;
-      var fotosGps = item.photos.filter(function(p) { return p.gps; }).length;
+      var fotosNC = item.photos.filter(function(p){ return p.isNC; }).length;
+      var fotosG  = item.photos.filter(function(p){ return !p.isNC; }).length;
+      var fotosGps = item.photos.filter(function(p){ return p.gps; }).length;
       html += '<div class="rel-item">';
       html += '<div class="rel-dot ' + cls + '"></div>';
       html += '<div style="flex:1"><div class="rel-item-name">' + displayName(item.name) + '</div>';
       if (item.obs) html += '<div class="rel-item-obs">↳ ' + item.obs + '</div>';
-      if (fotosNC) html += '<div class="rel-item-obs" style="color:var(--danger)">📸 ' + fotosNC + ' foto(s) NC</div>';
-      if (fotosG) html += '<div class="rel-item-obs">📷 ' + fotosG + ' foto(s) geral</div>';
+      if (fotosNC)  html += '<div class="rel-item-obs" style="color:var(--danger)">📸 ' + fotosNC + ' foto(s) NC</div>';
+      if (fotosG)   html += '<div class="rel-item-obs">📷 ' + fotosG + ' foto(s) geral</div>';
       if (fotosGps) html += '<div class="rel-item-obs" style="color:var(--accent2)">📍 GPS em ' + fotosGps + ' foto(s)</div>';
       html += '</div><div class="rel-item-status ' + cls + '">' + label + '</div></div>';
     });
-    html += '</div>';
+
+    html += '</div></div>'; // fecha conteúdo e defensa
   });
   document.getElementById("rel-items").innerHTML = html;
 }
@@ -788,8 +826,10 @@ function exportarRelatorio() {
   txt += "Conformes: " + conformes + "   Nao conformes: " + nconformes + "   Nao inspecionados: " + ninspect + "\n";
   defensasRegistradas.forEach(function(def, idx) {
     txt += "\n============================================\n";
-    txt += "DEFENSA " + (idx+1) + " — " + def.km + "\n";
+    txt += "DEFENSA — " + def.km + (def.sentido ? " " + def.sentido : "") + "\n";
     txt += "Horario: " + def.timestamp + (def.extensao ? "   Extensao: " + def.extensao + "m" : "") + "\n";
+    txt += "Rodovia: " + (def.rodovia||"—") + "   Sentido: " + (def.sentido||"—") + "   Posicao: " + (def.posicao||"—") + "\n";
+    txt += "Tipo: " + (def.tipo||"—") + "   Nivel: " + (def.nivel||"—") + "   Instalacao: " + (def.instalacao||"—") + "\n";
     if (def.gps) txt += "GPS: " + def.gps.lat + ", " + def.gps.lng + " +-" + def.gps.acc + "m\n";
     txt += "Conformes: " + def.conformes + "   Nao conformes: " + def.nconformes + "\n";
     var lastCat = "";
@@ -818,7 +858,73 @@ function exportarRelatorio() {
   showToast("Relatório exportado!");
 }
 
-// ── PDF ──
+function confirmarExclusao(idx) {
+  var el = document.getElementById("confirma-excluir-" + idx);
+  if (el) el.style.display = "flex";
+}
+
+function cancelarExclusao(idx) {
+  var el = document.getElementById("confirma-excluir-" + idx);
+  if (el) el.style.display = "none";
+}
+
+function excluirDefensa(idx) {
+  defensasRegistradas.splice(idx, 1);
+  atualizarListaDefensas();
+  buildRelatorio();
+  showToast("Defensa excluída.");
+}
+
+function toggleRelDef(idx) {
+  var corpo = document.getElementById("rel-def-" + idx);
+  var arr = document.getElementById("arr-def-" + idx);
+  if (!corpo) return;
+  var aberto = corpo.style.display !== "none";
+  corpo.style.display = aberto ? "none" : "block";
+  if (arr) arr.style.transform = aberto ? "" : "rotate(-90deg)";
+}
+
+// ── SELEÇÃO DE DEFENSAS ──
+var defensasSelecionadas = {};
+
+function toggleCheckDef(el, idx) {
+  if (defensasSelecionadas[idx]) {
+    delete defensasSelecionadas[idx];
+    el.classList.remove("marcado");
+  } else {
+    defensasSelecionadas[idx] = true;
+    el.classList.add("marcado");
+  }
+  var total = Object.keys(defensasSelecionadas).length;
+  var btn = document.getElementById("btn-pdf-sel");
+  var cont = document.getElementById("contador-sel");
+  if (cont) cont.textContent = total;
+  if (btn) btn.style.display = total > 0 ? "block" : "none";
+}
+
+function gerarPDFSelecionados() {
+  var total = Object.keys(defensasSelecionadas).length;
+  if (total === 0) { showToast("Nenhuma defensa selecionada."); return; }
+  var defensasFiltradas = defensasRegistradas.filter(function(def, idx) {
+    return defensasSelecionadas[idx];
+  });
+  var backup = defensasRegistradas;
+  defensasRegistradas = defensasFiltradas;
+  gerarPDF(false);
+  defensasRegistradas = backup;
+}
+
+// ── PDF INDIVIDUAL ──
+function gerarPDFDefensa(idx, apenasNC) {
+  var def = defensasRegistradas[idx];
+  if (!def) return;
+  var backup = defensasRegistradas;
+  defensasRegistradas = [def];
+  gerarPDF(apenasNC);
+  defensasRegistradas = backup;
+}
+
+// ── PDF GERAL ──
 function gerarPDF(apenasNC) {
   if (defensasRegistradas.length === 0) { showToast("Nenhuma defensa finalizada."); return; }
   showToast("Gerando PDF...");
@@ -856,9 +962,9 @@ function gerarPDF(apenasNC) {
   }
 
   // ── CABEÇALHO ──
-  doc.setFillColor(30, 30, 40);
+  doc.setFillColor(26, 111, 181);
   doc.rect(0, 0, PW, 28, "F");
-  doc.setFontSize(14); doc.setTextColor(240, 180, 40);
+  doc.setFontSize(14); doc.setTextColor(255, 255, 255);
   doc.text("VISTORIA DE DEFENSAS METALICAS", M, 11);
   doc.setFontSize(8); doc.setTextColor(180, 180, 200);
   doc.text("NBR 15486 / NBR 6971", M, 17);
@@ -900,19 +1006,25 @@ function gerarPDF(apenasNC) {
     if (apenasNC && itensParaExibir.length === 0) return;
 
     checkPage(20);
-    doc.setFillColor(30, 30, 40);
+    doc.setFillColor(26, 111, 181);
     doc.rect(M, y, CW, 10, "F");
-    doc.setFontSize(9); doc.setTextColor(240, 180, 40);
-    doc.text("DEFENSA " + (idx+1) + " — " + def.km, M+3, y+6.5);
-    doc.setFontSize(8); doc.setTextColor(180,180,200);
+    doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+    doc.text("DEFENSA — " + (def.rodovia ? def.rodovia + " " : "") + def.km + (def.sentido ? " " + def.sentido : ""), M+3, y+6.5);
+    doc.setFontSize(8); doc.setTextColor(220, 235, 255);
     doc.text(def.timestamp + (def.extensao ? "   " + def.extensao + "m" : ""), PW-M-3, y+6.5, {align:"right"});
     y += 12;
 
-    if (def.gps) {
-      doc.setFontSize(7); doc.setTextColor(corMut[0],corMut[1],corMut[2]);
-      doc.text("GPS: " + def.gps.lat + ", " + def.gps.lng + " +-" + def.gps.acc + "m", M, y);
-      y += 5;
-    }
+    // dados da defensa
+    doc.setFillColor(240, 240, 245);
+    doc.rect(M, y, CW, 16, "F");
+    doc.setFontSize(7.5); doc.setTextColor(60, 60, 60);
+    doc.text("Rodovia: " + (def.rodovia||"—") + "   Sentido: " + (def.sentido||"—") + "   Posicao: " + (def.posicao||"—"), M+3, y+5);
+    doc.text("Tipo: " + (def.tipo||"—") + "   Nivel: " + (def.nivel||"—") + "   Instalacao: " + (def.instalacao||"—"), M+3, y+10);
+    var linha3 = "";
+    if (def.extensao) linha3 += "Extensao: " + def.extensao + "m   ";
+    if (def.gps) linha3 += "GPS: " + def.gps.lat + ", " + def.gps.lng + " +-" + def.gps.acc + "m";
+    if (linha3) doc.text(linha3, M+3, y+15);
+    y += linha3 ? 19 : 18;
 
     itensParaExibir.forEach(function(item) {
       var fotos = item.photos || [];
