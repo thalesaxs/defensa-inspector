@@ -287,6 +287,25 @@
     </div>
   </div>
 
+  <!-- Opções do PDF -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Incluir no PDF</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="opt-nc" checked style="width:18px;height:18px;accent-color:var(--danger);cursor:pointer;">
+        <span style="font-size:13px;">Itens <b style="color:var(--danger)">não conformes</b></span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="opt-c" checked style="width:18px;height:18px;accent-color:var(--accent2);cursor:pointer;">
+        <span style="font-size:13px;">Itens <b style="color:var(--accent2)">conformes</b></span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="opt-fotos" checked style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;">
+        <span style="font-size:13px;">Fotos</span>
+      </label>
+    </div>
+  </div>
+
   <div class="rel-card">
     <div class="rel-card-title">Itens Inspecionados</div>
     <div id="rel-items"></div>
@@ -297,11 +316,10 @@
 <div class="export-bar" id="export-bar" style="display:none">
   <div style="display:flex;flex-direction:column;gap:6px;width:100%;">
     <div style="display:flex;gap:6px;">
-      <button class="btn-primary" style="flex:1;padding:10px;" onclick="gerarPDF(false)">↓ PDF Completo</button>
-      <button class="btn-secondary" style="margin:0;flex:1;padding:10px;" onclick="gerarPDF(true)">↓ PDF NC</button>
+      <button class="btn-primary" style="flex:1;padding:10px;" onclick="gerarPDF()">↓ Gerar PDF</button>
       <button onclick="compartilhar()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:0 12px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;">⇧</button>
     </div>
-    <button id="btn-pdf-sel" onclick="gerarPDFSelecionados()" style="display:none;width:100%;padding:10px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:.06em;border-radius:8px;cursor:pointer;" id="btn-pdf-sel">↓ PDF Selecionados (<span id="contador-sel">0</span>)</button>
+    <button id="btn-pdf-sel" onclick="gerarPDFSelecionados()" style="display:none;width:100%;padding:10px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:.06em;border-radius:8px;cursor:pointer;">↓ PDF Selecionados (<span id="contador-sel">0</span>)</button>
   </div>
 </div>
 
@@ -926,23 +944,30 @@ function gerarPDFSelecionados() {
   });
   var backup = defensasRegistradas;
   defensasRegistradas = defensasFiltradas;
-  gerarPDF(false);
+  gerarPDF();
   defensasRegistradas = backup;
 }
 
 // ── PDF INDIVIDUAL ──
-function gerarPDFDefensa(idx, apenasNC) {
+function gerarPDFDefensa(idx) {
   var def = defensasRegistradas[idx];
   if (!def) return;
   var backup = defensasRegistradas;
   defensasRegistradas = [def];
-  gerarPDF(apenasNC);
+  gerarPDF();
   defensasRegistradas = backup;
 }
 
 // ── PDF GERAL ──
-function gerarPDF(apenasNC) {
+function gerarPDF() {
   if (defensasRegistradas.length === 0) { showToast("Nenhuma defensa finalizada."); return; }
+
+  var optNC    = document.getElementById("opt-nc")    ? document.getElementById("opt-nc").checked    : true;
+  var optC     = document.getElementById("opt-c")     ? document.getElementById("opt-c").checked     : true;
+  var optFotos = document.getElementById("opt-fotos") ? document.getElementById("opt-fotos").checked : true;
+
+  if (!optNC && !optC) { showToast("Selecione ao menos um tipo de item."); return; }
+
   showToast("Gerando PDF...");
 
   var d = getData();
@@ -999,44 +1024,18 @@ function gerarPDF(apenasNC) {
   doc.text(tipo + "  —  " + dataFmt, M, altCab - 3);
   y = altCab + 8;
 
-  // ── CONTAGEM DE DEFENSAS ──
-  var defOK = defensasRegistradas.filter(function(def) {
-    return !def.items.some(function(i) { return i.status === "NC"; });
-  }).length;
-  var defNC = defensasRegistradas.filter(function(def) {
-    return def.items.some(function(i) { return i.status === "NC"; });
-  }).length;
-
-  var bw = (CW - 6) / 2;
-  // Card conformes
-  doc.setFillColor(235, 250, 242);
-  doc.roundedRect(M, y, bw, 18, 2, 2, "F");
-  doc.setDrawColor(40, 180, 100); doc.setLineWidth(0.4);
-  doc.roundedRect(M, y, bw, 18, 2, 2, "S");
-  doc.setFontSize(20); doc.setTextColor(26, 120, 70);
-  doc.text(String(defOK), M + bw/2, y + 11, {align:"center"});
-  doc.setFontSize(7); doc.setTextColor(60, 140, 90);
-  doc.text("DEFENSAS OK", M + bw/2, y + 16, {align:"center"});
-
-  // Card não conformes
-  var bx2 = M + bw + 6;
-  doc.setFillColor(252, 238, 238);
-  doc.roundedRect(bx2, y, bw, 18, 2, 2, "F");
-  doc.setDrawColor(220, 50, 60); doc.setLineWidth(0.4);
-  doc.roundedRect(bx2, y, bw, 18, 2, 2, "S");
-  doc.setFontSize(20); doc.setTextColor(180, 30, 40);
-  doc.text(String(defNC), bx2 + bw/2, y + 11, {align:"center"});
-  doc.setFontSize(7); doc.setTextColor(200, 50, 60);
-  doc.text("PRECISAM ATENCAO", bx2 + bw/2, y + 16, {align:"center"});
-
-  y += 26;
+  y += 6;
 
   // ── DEFENSAS ──
   defensasRegistradas.forEach(function(def, idx) {
-    var itensParaExibir = apenasNC
-      ? def.items.filter(function(i){ return i.status === "NC"; })
-      : def.items;
-    if (apenasNC && itensParaExibir.length === 0) return;
+    if (idx > 0) { doc.addPage(); y = M; }
+    var itensParaExibir = def.items.filter(function(i) {
+      if (i.status === null) return false;
+      if (i.status === "NC" && !optNC) return false;
+      if (i.status === "C"  && !optC)  return false;
+      return true;
+    });
+    if (itensParaExibir.length === 0) return;
 
     checkPage(20);
     doc.setFillColor(26, 111, 181);
@@ -1063,9 +1062,7 @@ function gerarPDF(apenasNC) {
       if (item.status === null) return; // ignora não inspecionados
 
       var fotos = item.photos || [];
-      var fotosExibir = apenasNC
-        ? fotos.filter(function(p){ return p.isNC; })
-        : fotos;
+      var fotosExibir = optFotos ? fotos : [];
       var temFoto = fotosExibir.length > 0;
 
       // dimensões
@@ -1173,7 +1170,7 @@ function gerarPDF(apenasNC) {
     doc.text("Pag. " + p + "/" + totalPag, PW-M, PH-6, {align:"right"});
   }
 
-  var sufixo = apenasNC ? "-nao-conformes" : "-completo";
+  var sufixo = (!optNC ? "-conformes" : (!optC ? "-nao-conformes" : "-completo"));
   var nomeArq = "vistoria-" + (d.rodovia||"defensa").replace(/\s/g,"-") + "-" + today.toISOString().split("T")[0] + sufixo + ".pdf";
   doc.save(nomeArq);
   showToast("PDF gerado!");
