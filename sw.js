@@ -1,4 +1,4 @@
-var CACHE = "defensa-v13";
+var CACHE = "defensa-v14";
 var ARQUIVOS = [
   "./vistoria-defensas.html",
   "./manifest.json",
