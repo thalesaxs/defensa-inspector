@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Guia do Usuário — Registro de Inspeção</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f4f5f7; --surface:#ffffff; --surface2:#eef0f4; --border:#d0d5e0;
+    --accent:#1a6fb5; --accent2:#1a9e5c; --danger:#d93025;
+    --text:#1a1d2e; --muted:#6b7280;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.65;}
+
+  header{background:#1a6fb5;padding:20px 20px 16px;position:sticky;top:0;z-index:100;}
+  .header-title{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:#fff;text-transform:uppercase;}
+  .header-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:3px;font-family:var(--mono);}
+
+  .toc{background:#fff;border-bottom:1px solid var(--border);padding:14px 20px;}
+  .toc-title{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+  .toc a{display:block;font-size:13px;color:var(--accent);text-decoration:none;padding:4px 0;border-bottom:1px solid var(--border);}
+  .toc a:last-child{border-bottom:none;}
+  .toc a:hover{color:#1559a0;}
+
+  .content{padding:20px;padding-bottom:60px;max-width:700px;margin:0 auto;}
+
+  .section{margin-bottom:36px;}
+  .section-anchor{display:block;height:0;visibility:hidden;}
+
+  h2{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px;}
+  h2::before{content:'//';color:var(--muted);}
+
+  h3{font-size:14px;font-weight:600;color:var(--text);margin:16px 0 8px;}
+
+  p{margin-bottom:10px;color:#2d3142;}
+
+  .card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
+  .card-title{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+
+  .tip{background:rgba(26,111,181,.07);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0;font-size:13px;color:#1a2a3a;}
+  .tip strong{color:var(--accent);}
+
+  .warn{background:rgba(217,48,37,.06);border-left:3px solid var(--danger);border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0;font-size:13px;color:#3a1a1a;}
+
+  .success{background:rgba(26,158,92,.07);border-left:3px solid var(--accent2);border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0;font-size:13px;color:#0a2a1a;}
+
+  .step{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;}
+  .step-num{background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:600;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .step-text{flex:1;font-size:13px;color:#2d3142;}
+
+  .badge{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;}
+  .badge-c{background:rgba(26,158,92,.15);color:var(--accent2);}
+  .badge-nc{background:rgba(217,48,37,.12);color:var(--danger);}
+  .badge-blue{background:rgba(26,111,181,.12);color:var(--accent);}
+
+  .tag{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-size:11px;padding:2px 7px;color:var(--text);}
+
+  .icon-row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;}
+  .icon-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
+  .icon-item span{font-size:16px;}
+
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;}
+  th{background:var(--surface2);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;text-align:left;border:1px solid var(--border);}
+  td{padding:8px 10px;border:1px solid var(--border);vertical-align:top;}
+  tr:nth-child(even) td{background:#fafbfc;}
+
+  .divider{height:1px;background:var(--border);margin:28px 0;}
+
+  .back-top{display:block;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;margin-top:20px;padding:10px;}
+  .back-top:hover{color:var(--accent);}
+
+  footer{background:#fff;border-top:1px solid var(--border);padding:16px 20px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">Guia do Usuário</div>
+  <div class="header-sub">Registro de Inspeção — ARTESP</div>
+</header>
+
+<div class="toc">
+  <div class="toc-title">Índice</div>
+  <a href="#visao-geral">1. Visão Geral do Aplicativo</a>
+  <a href="#aba-dados">2. Aba Dados</a>
+  <a href="#aba-geral">3. Aba Geral</a>
+  <a href="#aba-vistoria">4. Aba Vistoria</a>
+  <a href="#aba-relatorio">5. Aba Relatório</a>
+  <a href="#fotos">6. Fotos e Marca D'água</a>
+  <a href="#pdf">7. Geração de PDF</a>
+  <a href="#dicas">8. Dicas de Uso em Campo</a>
+</div>
+
+<div class="content">
+
+  <div class="warn" style="margin-bottom:24px;font-size:14px;"><strong>⚠️ Ferramenta em teste:</strong> Este aplicativo está em fase de testes. Algumas funcionalidades podem não se comportar como esperado. Utilize-o como ferramenta auxiliar e sempre valide as informações geradas antes de utilizá-las oficialmente.</div>
+
+  <!-- ─── VISÃO GERAL ─────────────────────────────── -->
+  <div class="section">
+    <a class="section-anchor" id="visao-geral"></a>
+    <h2>1. Visão Geral do Aplicativo</h2>
+    <p>O <strong>Registro de Inspeção</strong> é um aplicativo mobile para registro de apontamentos e vistorias em campo. Ele funciona direto no navegador do celular, sem necessidade de instalação, e pode ser usado mesmo sem internet após o primeiro acesso.</p>
+
+    <div class="card">
+      <div class="card-title">As 4 abas do aplicativo</div>
+      <table>
+        <tr><th>Aba</th><th>Função</th></tr>
+        <tr><td><strong>Dados</strong></td><td>Preenche as informações de localização (rodovia, km, sentido, posição)</td></tr>
+        <tr><td><strong>Geral</strong></td><td>Apontamentos livres — registra qualquer tipo de ocorrência com descrição, status e foto</td></tr>
+        <tr><td><strong>Vistoria</strong></td><td>Vistorias especializadas com checklist — atualmente disponível: Defensa Metálica</td></tr>
+        <tr><td><strong>Relatório</strong></td><td>Visualiza todos os apontamentos registrados, edita, exclui e gera o PDF</td></tr>
+      </table>
+    </div>
+
+    <div class="tip"><strong>Dica:</strong> Os dados preenchidos ficam salvos durante toda a sessão. Ao fechar o navegador, os dados são perdidos — gere o PDF e baixe todas as fotos necessárias antes de encerrar.</div>
+  </div>
+
+  <!-- ─── ABA DADOS ─────────────────────────────── -->
+  <div class="section">
+    <a class="section-anchor" id="aba-dados"></a>
+    <h2>2. Aba Dados</h2>
+    <p>Esta é a primeira aba a ser preenchida antes de qualquer apontamento. Ela define o contexto de localização que será associado a todos os registros feitos na sessão.</p>
+
+    <div class="card">
+      <div class="card-title">Campos disponíveis</div>
+      <table>
+        <tr><th>Campo</th><th>Exemplo</th><th>Observação</th></tr>
+        <tr><td>Rodovia</td><td>SP-065 - Rota das Bandeiras</td><td>Nome completo da rodovia</td></tr>
+        <tr><td>Sentido</td><td>Norte / Sul / Crescente...</td><td>Opções: Norte, Sul, Leste, Oeste, Central, Crescente, Decrescente</td></tr>
+        <tr><td>Posição</td><td>Canteiro central</td><td>Opções: Canteiro central, Alça, Dispositivo, Margem direita, Margem esquerda</td></tr>
+        <tr><td>Quilômetro</td><td>130+250</td><td>Km exato do apontamento</td></tr>
+      </table>
+    </div>
+
+    <h3>Botão "Manter dados ao finalizar"</h3>
+    <p>Quando ativado (padrão), ao finalizar um apontamento os campos <strong>Rodovia</strong>, <strong>Sentido</strong> e <strong>Posição</strong> são mantidos automaticamente para o próximo registro — útil quando se percorre um trecho longo. O <strong>Quilômetro</strong> sempre é limpo.</p>
+    <p>Quando desativado, todos os campos são limpos ao finalizar cada apontamento.</p>
+
+    <h3>Botão "Iniciar Vistoria →"</h3>
+    <p>Redireciona para a aba <strong>Vistoria</strong> após confirmar os dados de localização.</p>
+  </div>
+
+  <!-- ─── ABA GERAL ─────────────────────────────── -->
+  <div class="section">
+    <a class="section-anchor" id="aba-geral"></a>
+    <h2>3. Aba Geral</h2>
+    <p>Usada para apontamentos livres do dia a dia — qualquer tipo de ocorrência que não se enquadra em um checklist específico.</p>
+
+    <div class="step"><div class="step-num">1</div><div class="step-text">Preencha os dados na aba <strong>Dados</strong> (rodovia, km, sentido, posição)</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text">Vá para a aba <strong>Geral</strong> e descreva o apontamento no campo <em>Descrição</em> (ex: "Sinalização vertical danificada")</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text">Marque o status: <span class="badge badge-c">CONFORME</span> ou <span class="badge badge-nc">NÃO CONFORME</span></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text">Registre a foto da ocorrência. Se necessário, adicione uma observação — ela ficará registrada apenas no relatório</div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-text">Toque em <strong>✓ Salvar Apontamento</strong> — o app vai direto para o Relatório</div></div>
+
+    <div class="tip"><strong>Fotos:</strong> Toque no botão de câmera para tirar a foto diretamente ou escolher da galeria. Você pode adicionar múltiplas fotos por apontamento. Assim que a foto for registrada, um pequeno ícone azul <span class="tag">↓</span> aparece sobre ela — toque nele para baixá-la imediatamente com a marca d'água aplicada.</div>
+
+    <div class="warn"><strong>Atenção:</strong> A descrição é obrigatória e o status (Conforme/Não conforme) também deve ser marcado antes de salvar.</div>
+  </div>
+
+  <!-- ─── ABA VISTORIA ─────────────────────────────── -->
+  <div class="section">
+    <a class="section-anchor" id="aba-vistoria"></a>
+    <h2>4. Aba Vistoria</h2>
+    <p>Usada para vistorias especializadas com checklist estruturado. Atualmente disponível: <strong>Defensa Metálica</strong>.</p>
+
+    <h3>Como iniciar uma vistoria</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-text">Preencha os dados na aba <strong>Dados</strong></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text">Na aba <strong>Vistoria</strong>, toque no botão do objeto desejado — ex: <span class="tag">🛡️ Defensa Metálica</span></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text">O checklist será exibido com todos os itens a avaliar, organizados por seção</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text">Para cada item, toque em <strong>✓</strong> (Conforme) ou <strong>✗</strong> (Não conforme)</div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-text">Ao marcar <span class="badge badge-nc">NÃO CONFORME</span>, aparece automaticamente o campo de observação e o botão de foto</div></div>
+    <div class="step"><div class="step-num">6</div><div class="step-text">Ao concluir, toque em <strong>✓ Finalizar Apontamento</strong> — o app vai direto para o Relatório</div></div>
+
+    <div class="divider"></div>
+
+    <h3>Defensa Metálica — Checklist</h3>
+    <p>O checklist de Defensa Metálica é organizado em 3 seções: <strong>Estrutura da Defensa Metálica</strong>, <strong>Terminais</strong> e <strong>Alinhamento e Geometria</strong>. Cada seção contém os itens específicos a serem avaliados em campo.</p>
+
+    <h3>Botão ? (Ajuda)</h3>
+    <p>Cada item do checklist possui um botão <span class="tag">?</span> que exibe uma descrição técnica detalhada do que deve ser avaliado e quais situações configuram não conformidade — use sempre que tiver dúvida sobre o critério do item. Toque novamente no <span class="tag">?</span> para fechar.</p>
+
+    <h3>Como adicionar foto em um item</h3>
+    <p>Ao marcar um item como <span class="badge badge-nc">NÃO CONFORME</span>, o painel de detalhes abre automaticamente com o campo de observação e o botão <strong>📸 Foto da não conformidade</strong>. Toque nele para tirar a foto diretamente da câmera.</p>
+
+    <div class="tip"><strong>Barra de progresso:</strong> No topo da aba Vistoria há uma barra que mostra quantos itens já foram avaliados em relação ao total.</div>
+
+    <div class="success"><strong>Após finalizar:</strong> O checklist é automaticamente reiniciado e o botão de Defensa Metálica volta ao estado inicial — pronto para uma nova vistoria no mesmo trecho ou em outro km.</div>
+  </div>
+
+  <!-- ─── ABA RELATÓRIO ─────────────────────────────── -->
+  <div class="section">
+    <a class="section-anchor" id="aba-relatorio"></a>
+    <h2>5. Aba Relatório</h2>
+    <p>Central de todos os apontamentos registrados na sessão. Aqui você visualiza, organiza e exporta os dados.</p>
+
+    <h3>Itens Inspecionados</h3>
+    <p>Cada apontamento aparece como um card com o cabeçalho mostrando a rodovia, km, sentido e descrição. A cor da borda indica o status: <span style="color:var(--danger)">vermelha = há NC</span> / <span style="color:var(--accent2)">verde = tudo conforme</span>.</p>
+    <p>Toque no card para expandir e ver os detalhes, fotos e itens do apontamento.</p>
+
+    <div class="icon-row">
+      <div class="icon-item"><span>✎</span> Editar apontamento</div>
+      <div class="icon-item"><span>✕</span> Excluir apontamento</div>
+      <div class="icon-item"><span>↓</span> Baixar foto com marca d'água</div>
+    </div>
+
+    <h3>Editando um apontamento</h3>
+    <p>Ao clicar em <strong>✎</strong>, um painel se abre permitindo alterar:</p>
+    <ul style="margin:8px 0 8px 20px;font-size:13px;line-height:2;">
+      <li>Rodovia, Sentido e Quilômetro</li>
+      <li>Descrição (para apontamentos da aba Geral)</li>
+      <li>Status de cada item (Conforme / Não conforme)</li>
+      <li>Adicionar ou excluir fotos — inclusive por item individual (para vistorias)</li>
+    </ul>
+    <p>Toque em <strong>✓ Salvar</strong> para confirmar as alterações.</p>
+
+    <h3>Opções do PDF</h3>
+    <p>Antes de gerar o PDF, você pode escolher o que incluir:</p>
+    <div class="icon-row">
+      <div class="icon-item"><span>✓</span> Incluir Conformes</div>
+      <div class="icon-item"><span>✗</span> Incluir Não Conformes</div>
+      <div class="icon-item"><span>📷</span> Incluir Fotos</div>
+    </div>
+
+    <h3>Botões de exportação</h3>
+    <div class="icon-row">
+      <div class="icon-item"><span>↓</span> Gerar PDF completo</div>
+      <div class="icon-item"><span>⇧</span> Compartilhar resumo em texto</div>
+      <div class="icon-item"><span>↓</span> PDF Selecionados</div>
+    </div>
+  </div>
+
+  <!-- ─── FOTOS ─────────────────────────────── -->
+  <div class="section">
+    <a class="section-anchor" id="fotos"></a>
+    <h2>6. Fotos e Marca D'água</h2>
+
+    <h3>Qualidade das fotos</h3>
+    <p>As fotos são automaticamente redimensionadas para no máximo <strong>1920×1440px</strong> com qualidade de <strong>82%</strong> ao serem capturadas. Isso garante tamanho adequado para o PDF e envio por WhatsApp sem perder detalhes visuais.</p>
+
+    <h3>Marca d'água automática</h3>
+    <p>Toda foto salva pelo aplicativo recebe automaticamente uma marca d'água com:</p>
+    <ul style="margin:8px 0 8px 20px;font-size:13px;line-height:2;">
+      <li>Logo ARTESP</li>
+      <li>Nome da rodovia</li>
+      <li>Km + Sentido</li>
+      <li>Descrição do apontamento</li>
+      <li>Data e hora</li>
+      <li>Coordenadas GPS (quando disponível)</li>
+    </ul>
+
+    <h3>Como baixar uma foto com marca d'água</h3>
+    <p>Em qualquer miniatura de foto — na aba Geral, Vistoria ou Relatório — toque no botão <span class="tag">↓</span> para baixar a foto com a marca d'água já aplicada.</p>
+
+    <div class="tip"><strong>Nome do arquivo:</strong> As fotos são salvas com nome no formato <span class="tag">Rodovia_Km_Sentido_Data_4dígitos.jpg</span> — ex: <em>SP340_130-250_Norte_22-03-2026_4872.jpg</em></div>
+
+    <h3>GPS nas fotos</h3>
+    <p>O GPS é capturado automaticamente no momento em que a foto é tirada. Se o dispositivo demorar para obter sinal, a coordenada pode não aparecer nas primeiras fotos. Para melhores resultados, certifique-se de que o GPS do celular está ativado antes de iniciar a vistoria.</p>
+  </div>
+
+  <!-- ─── PDF ─────────────────────────────── -->
+  <div class="section">
+    <a class="section-anchor" id="pdf"></a>
+    <h2>7. Geração de PDF</h2>
+
+    <h3>Tipos de cabeçalho</h3>
+    <p>O PDF gerado identifica automaticamente o tipo de apontamento pelo cabeçalho:</p>
+    <div class="icon-row">
+      <div class="icon-item"><span class="badge badge-blue">Relatório de Conservação de Rotina</span> → Apontamentos da aba Geral</div>
+    </div>
+    <div class="icon-row">
+      <div class="icon-item"><span class="badge badge-blue">Relatório - Defensa Metálica</span> → Apontamentos da aba Vistoria</div>
+    </div>
+
+    <h3>Seções conformes na Vistoria</h3>
+    <p>No PDF de Defensa Metálica, quando <strong>todos os itens de uma seção estão conformes</strong>, o PDF exibe apenas uma linha com o nome da seção e o badge <span class="badge badge-c">CONFORME</span> — sem listar cada item individualmente. Isso torna o relatório mais limpo e fácil de ler.</p>
+    <p>Se a seção tiver ao menos um item <span class="badge badge-nc">NÃO CONFORME</span>, todos os itens da seção são listados individualmente com seus respectivos status, observações e fotos.</p>
+
+    <div class="card">
+      <div class="card-title">Exemplo de PDF — Defensa Metálica</div>
+      <table>
+        <tr><th>Situação</th><th>Como aparece no PDF</th></tr>
+        <tr><td>Seção toda Conforme</td><td>Uma linha: "Estrutura da defensa metálica" + badge CONFORME</td></tr>
+        <tr><td>Seção com NC</td><td>Cada item listado com seu status, observação e foto</td></tr>
+        <tr><td>Mudança de tipo (Geral → Vistoria)</td><td>Começa sempre em nova página com novo cabeçalho</td></tr>
+      </table>
+    </div>
+
+    <h3>Nome do arquivo PDF</h3>
+    <p>O PDF é salvo com nome no formato <span class="tag">Rodovia_Sentido_Km_Data_4dígitos.pdf</span> — ex: <em>SP340-Renovias_Norte_130-200_2026-03-22_5924.pdf</em></p>
+
+    <div class="tip"><strong>Dica:</strong> Para gerar um PDF somente com os itens não conformes, desmarque a opção "Conformes" antes de gerar.</div>
+  </div>
+
+  <!-- ─── DICAS ─────────────────────────────── -->
+  <div class="section">
+    <a class="section-anchor" id="dicas"></a>
+    <h2>8. Dicas de Uso em Campo</h2>
+
+    <div class="card">
+      <div class="card-title">Fluxo recomendado para o dia a dia</div>
+      <div class="step"><div class="step-num">1</div><div class="step-text">Abra o app e preencha os dados na aba <strong>Dados</strong></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">Use a aba <strong>Geral</strong> para apontamentos rápidos do cotidiano</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text">Use a aba <strong>Vistoria</strong> quando for realizar uma vistoria de Defensa Metálica</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text">Acompanhe e ajuste os apontamentos na aba <strong>Relatório</strong></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-text">Ao final, gere o <strong>PDF</strong> e salve ou compartilhe antes de fechar o app. Caso queira manter cada foto separadamente, baixe-as individualmente usando o ícone <span class="tag">↓</span> antes de encerrar</div></div>
+    </div>
+
+    <h3>Múltiplas vistorias no mesmo trecho</h3>
+    <p>É possível registrar várias vistorias de Defensa Metálica em sequência. Após finalizar cada uma, o checklist é reiniciado automaticamente. Altere o Quilômetro na aba Dados antes de iniciar a próxima.</p>
+
+    <h3>Correções no relatório</h3>
+    <p>Se perceber algum erro após salvar, acesse a aba <strong>Relatório</strong>, toque no apontamento e use o botão <strong>✎</strong> para corrigir o que precisar — km, sentido, status dos itens ou fotos.</p>
+
+    <h3>Envio das fotos por WhatsApp</h3>
+    <p>Para enviar fotos individualmente com a marca d'água, toque no botão <span class="tag">↓</span> ao lado de cada foto no Relatório. A foto será salva na galeria do celular e pode ser compartilhada normalmente.</p>
+
+    <div class="warn"><strong>Importante:</strong> Os dados da sessão são mantidos enquanto o navegador estiver aberto. Ao fechar o app ou recarregar a página, os dados são perdidos. Sempre gere o PDF antes de encerrar o uso.</div>
+
+    <div class="success"><strong>Instalação como app:</strong> No Android, ao acessar o app pelo Chrome, toque no menu (⋮) e selecione <em>"Adicionar à tela inicial"</em>. O app funcionará como um aplicativo nativo, inclusive offline após o primeiro carregamento.</div>
+  </div>
+
+  <a class="back-top" href="#visao-geral">↑ Voltar ao topo</a>
+
+</div>
+
+<footer>
+  Registro de Inspeção — ARTESP &nbsp;·&nbsp; Guia do Usuário v1.0
+</footer>
+
+</body>
+</html>

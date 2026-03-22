@@ -172,6 +172,16 @@
 
   <div class="section-title">Dados da Rodovia</div>
 
+  <!-- Botão Guia do Usuário -->
+  <a href="guia-usuario.html" target="_blank" style="display:flex;align-items:center;gap:14px;background:rgba(26,111,181,.08);border:1.5px solid var(--accent);border-radius:10px;padding:14px 16px;margin-bottom:16px;text-decoration:none;cursor:pointer;">
+    <div style="width:40px;height:40px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">📖</div>
+    <div>
+      <div style="font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;">Guia do Usuário</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">Saiba como usar todas as funcionalidades do aplicativo</div>
+    </div>
+    <div style="margin-left:auto;font-size:18px;color:var(--accent);">›</div>
+  </a>
+
   <!-- Toggle manter dados -->
   <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;">
     <div>
@@ -207,7 +217,7 @@
   <div class="field-group row2">
     <div>
       <label class="field-label">Quilômetro</label>
-      <input type="text" id="f-km" placeholder="ex: km 245+300">
+      <input type="text" id="f-km" placeholder="ex: 130+250">
     </div>
   </div>
 
@@ -325,19 +335,6 @@
 <!-- ABA: RELATÓRIO -->
 <div class="screen" id="screen-relatorio">
 
-  <!-- Título e subtítulo do PDF -->
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">Cabeçalho do PDF</div>
-    <div class="field-group" style="margin-bottom:10px;">
-      <label class="field-label">Título</label>
-      <input type="text" id="pdf-titulo" placeholder="ex: Relatório de Vistoria de Defensas">
-    </div>
-    <div class="field-group" style="margin-bottom:0;">
-      <label class="field-label">Subtítulo</label>
-      <input type="text" id="pdf-subtitulo" placeholder="ex: Rodovia SP-340 — Campinas/SP">
-    </div>
-  </div>
-
   <!-- Opções do PDF -->
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;">
     <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Incluir no PDF</div>
@@ -430,6 +427,7 @@ var NOMES_DISPLAY = {
   "Corrosao e revestimento": "Corrosão e revestimento",
   "Altura": "Altura",
   "Sobreposicao e continuidade": "Sobreposição e continuidade",
+  "Condicao e instalacao dos postes": "Condição e instalação dos postes",
   "Tipo, condicao e abatimento do terminal": "Tipo, condição e abatimento do terminal",
   "Transicao para elemento rigido": "Transição para elemento rígido",
   "Alinhamento e deformacoes do tracado": "Alinhamento e deformações do traçado",
@@ -743,7 +741,21 @@ function finalizarDefensa() {
   if (extEl) extEl.value = "";
 
   atualizarListaDefensas();
-  showTab("dados");
+
+  // reinicia a aba de vistoria
+  objetoAtual = null;
+  allItems = makeItems();
+  document.getElementById("checklist-container").innerHTML = "";
+  document.getElementById("progress-wrap").style.display = "none";
+  document.getElementById("btn-finalizar-wrap").style.display = "none";
+  // reseta destaque do botão de objeto
+  document.querySelectorAll("[id^='obj-btn-']").forEach(function(b) {
+    b.style.borderColor = "var(--border)";
+    b.style.background  = "var(--surface2)";
+    b.style.color       = "var(--muted)";
+  });
+
+  showTab("relatorio");
   showToast("Defensa " + defensasRegistradas.length + " registrada!");
 }
 
@@ -1374,10 +1386,17 @@ function buildRelatorio() {
     html += '<div><label class="field-label">Sentido</label><select id="edit-sentido-' + idx + '" style="font-size:13px;"><option value="">—</option><option' + (def.sentido==='Norte'?' selected':'') + '>Norte</option><option' + (def.sentido==='Sul'?' selected':'') + '>Sul</option><option' + (def.sentido==='Leste'?' selected':'') + '>Leste</option><option' + (def.sentido==='Oeste'?' selected':'') + '>Oeste</option><option' + (def.sentido==='Central'?' selected':'') + '>Central</option><option' + (def.sentido==='Crescente'?' selected':'') + '>Crescente</option><option' + (def.sentido==='Decrescente'?' selected':'') + '>Decrescente</option></select></div>';
     html += '<div><label class="field-label">Quilômetro</label><input type="text" id="edit-km-' + idx + '" value="' + (def.km||'') + '" style="font-size:13px;"></div>';
     html += '</div>';
+    // campo Descrição — só para apontamento livre
+    var isLivreCheck = def.items.length === 1 && def.items[0].cat === "Apontamento Livre";
+    if (isLivreCheck) {
+      var nomeAtual = NOMES_DISPLAY[def.items[0].name] || def.items[0].name || '';
+      html += '<div class="field-group" style="margin-bottom:8px;"><label class="field-label">Descrição</label><input type="text" id="edit-descricao-' + idx + '" value="' + nomeAtual.replace(/"/g, '&quot;') + '" style="font-size:13px;"></div>';
+    }
     html += '<div style="display:flex;flex-direction:column;gap:8px;">';
     html += '<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Fotos</div>';
-    html += '<div id="edit-fotos-' + idx + '" style="display:flex;flex-wrap:wrap;gap:4px;"></div></div>';
-    html += '</div>';
+    html += '<div id="edit-fotos-' + idx + '" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>';
+    html += '<div style="position:relative;overflow:hidden;border:1.5px dashed var(--border);border-radius:8px;padding:10px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;">📷 Adicionar foto<input type="file" accept="image/*" capture="environment" multiple onchange="adicionarFotoEdicao(' + idx + ',this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></div>';
+    html += '</div></div>';
     // status — se for apontamento livre mostra 1 botão, se for vistoria mostra cada item
     html += '<div class="field-group" style="margin-bottom:8px;margin-top:8px;"><label class="field-label">Status</label>';
     var isLivre = def.items.length === 1 && def.items[0].cat === "Apontamento Livre";
@@ -1388,17 +1407,31 @@ function buildRelatorio() {
       html += '<button id="edit-btn-nc-' + idx + '" onclick="setEditStatus(' + idx + ',\'NC\')" style="flex:1;padding:9px;border:1.5px solid ' + (statusAtual==='NC' ? 'var(--danger)' : 'var(--border)') + ';border-radius:8px;background:' + (statusAtual==='NC' ? 'rgba(217,48,37,.15)' : 'var(--surface2)') + ';font-family:var(--mono);font-size:11px;color:' + (statusAtual==='NC' ? 'var(--danger)' : 'var(--muted)') + ';cursor:pointer;">✗ Não conforme</button>';
       html += '</div>';
     } else {
-      // vistoria — lista cada item com botões individuais
+      // vistoria — lista cada item com botões e fotos individuais
       def.items.forEach(function(item, ii) {
         if (item.status === null) return;
         var sC  = item.status === 'C';
         var sNC = item.status === 'NC';
-        html += '<div style="margin-bottom:6px;">';
-        html += '<div style="font-size:11px;color:var(--text);margin-bottom:4px;">' + (NOMES_DISPLAY[item.name] || item.name) + '</div>';
-        html += '<div style="display:flex;gap:6px;">';
-        html += '<button id="edit-btn-c-' + idx + '-' + ii + '" onclick="setEditStatusItem(' + idx + ',' + ii + ',\'C\')" style="flex:1;padding:7px;border:1.5px solid ' + (sC ? 'var(--accent2)' : 'var(--border)') + ';border-radius:8px;background:' + (sC ? 'rgba(26,158,92,.15)' : 'var(--surface2)') + ';font-family:var(--mono);font-size:10px;color:' + (sC ? 'var(--accent2)' : 'var(--muted)') + ';cursor:pointer;">✓ Conforme</button>';
-        html += '<button id="edit-btn-nc-' + idx + '-' + ii + '" onclick="setEditStatusItem(' + idx + ',' + ii + ',\'NC\')" style="flex:1;padding:7px;border:1.5px solid ' + (sNC ? 'var(--danger)' : 'var(--border)') + ';border-radius:8px;background:' + (sNC ? 'rgba(217,48,37,.15)' : 'var(--surface2)') + ';font-family:var(--mono);font-size:10px;color:' + (sNC ? 'var(--danger)' : 'var(--muted)') + ';cursor:pointer;">✗ Não conforme</button>';
-        html += '</div></div>';
+        html += '<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:8px;">';
+        html += '<div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:6px;">' + (NOMES_DISPLAY[item.name] || item.name) + '</div>';
+        html += '<div style="display:flex;gap:6px;margin-bottom:6px;">';
+        html += '<button id="edit-btn-c-' + idx + '-' + ii + '" onclick="setEditStatusItem(' + idx + ',' + ii + ',\'C\')" style="flex:1;padding:7px;border:1.5px solid ' + (sC ? 'var(--accent2)' : 'var(--border)') + ';border-radius:8px;background:' + (sC ? 'rgba(26,158,92,.15)' : 'var(--surface)') + ';font-family:var(--mono);font-size:10px;color:' + (sC ? 'var(--accent2)' : 'var(--muted)') + ';cursor:pointer;">✓ Conforme</button>';
+        html += '<button id="edit-btn-nc-' + idx + '-' + ii + '" onclick="setEditStatusItem(' + idx + ',' + ii + ',\'NC\')" style="flex:1;padding:7px;border:1.5px solid ' + (sNC ? 'var(--danger)' : 'var(--border)') + ';border-radius:8px;background:' + (sNC ? 'rgba(217,48,37,.15)' : 'var(--surface)') + ';font-family:var(--mono);font-size:10px;color:' + (sNC ? 'var(--danger)' : 'var(--muted)') + ';cursor:pointer;">✗ Não conforme</button>';
+        html += '</div>';
+        // fotos do item
+        if (item.photos && item.photos.length > 0) {
+          html += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;" id="edit-fotos-item-' + idx + '-' + ii + '">';
+          item.photos.forEach(function(foto, fi) {
+            html += '<div style="position:relative;display:inline-block;">';
+            html += '<img src="' + foto.src + '" style="width:52px;height:52px;object-fit:cover;border-radius:4px;border:1px solid var(--border);">';
+            html += '<button onclick="excluirFotoItemEdicao(' + idx + ',' + ii + ',' + fi + ')" style="position:absolute;top:2px;right:2px;background:var(--danger);border:none;color:#fff;font-size:9px;width:16px;height:16px;border-radius:50%;cursor:pointer;line-height:1;padding:0;">✕</button>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+        // botão adicionar foto no item
+        html += '<div style="position:relative;overflow:hidden;border:1.5px dashed var(--border);border-radius:6px;padding:8px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;">📷 Adicionar foto<input type="file" accept="image/*" capture="environment" multiple onchange="adicionarFotoItemEdicao(' + idx + ',' + ii + ',this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></div>';
+        html += '</div>';
       });
     }
     html += '</div>';
@@ -1421,9 +1454,7 @@ function buildRelatorio() {
     // dados
     html += '<div style="font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:8px;padding:8px 10px;background:var(--surface2);border-radius:6px;">';
     html += '<b style="color:var(--text)">Rodovia:</b> ' + (def.rodovia||'—') + ' &nbsp;|&nbsp; <b style="color:var(--text)">Sentido:</b> ' + (def.sentido||'—') + ' &nbsp;|&nbsp; <b style="color:var(--text)">Posição:</b> ' + (def.posicao||'—') + '<br>';
-    html += '<b style="color:var(--text)">Tipo:</b> ' + (def.tipo||'—') + ' &nbsp;|&nbsp; <b style="color:var(--text)">Nível:</b> ' + (def.nivel||'—') + ' &nbsp;|&nbsp; <b style="color:var(--text)">Instalação:</b> ' + (def.instalacao||'—') + '<br>';
-    if (def.extensao) html += '<b style="color:var(--text)">Extensão:</b> ' + def.extensao + 'm &nbsp;';
-    if (def.gps) html += '&nbsp;<b style="color:var(--text)">GPS:</b> ' + def.gps.lat + ', ' + def.gps.lng + ' ±' + def.gps.acc + 'm';
+    if (def.gps) html += '<b style="color:var(--text)">GPS:</b> ' + def.gps.lat + ', ' + def.gps.lng + ' ±' + def.gps.acc + 'm';
     html += '</div>';
 
     // itens
@@ -1574,6 +1605,68 @@ function abrirEdicao(idx) {
 function fecharEdicao(idx) {
   document.getElementById("editar-def-" + idx).style.display = "none";
 }
+function adicionarFotoItemEdicao(idx, ii, input) {
+  var def = defensasRegistradas[idx];
+  var item = def.items[ii];
+  if (!item) return;
+  Array.from(input.files).forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      redimensionarFoto(e.target.result, 1920, 1440, 0.82, function(srcFinal) {
+        var now = new Date();
+        var ts = now.toLocaleDateString("pt-BR") + " - " + now.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+        var fotoObj = { src: srcFinal, isNC: item.status === "NC", gps: null, ts: ts };
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function(pos) { fotoObj.gps = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy) }; },
+            function() {}, { enableHighAccuracy: true, timeout: 8000 }
+          );
+        }
+        item.photos.push(fotoObj);
+        buildRelatorio();
+        abrirEdicao(idx);
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = "";
+}
+
+function excluirFotoItemEdicao(idx, ii, fi) {
+  var def = defensasRegistradas[idx];
+  var item = def.items[ii];
+  if (!item) return;
+  item.photos.splice(fi, 1);
+  buildRelatorio();
+  abrirEdicao(idx);
+}
+
+function adicionarFotoEdicao(idx, input) {
+  var def = defensasRegistradas[idx];
+  // adiciona na foto do primeiro item (apontamento livre) ou no primeiro item com fotos
+  var itemAlvo = def.items[0];
+  Array.from(input.files).forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      redimensionarFoto(e.target.result, 1920, 1440, 0.82, function(srcFinal) {
+        var now = new Date();
+        var ts = now.toLocaleDateString("pt-BR") + " - " + now.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+        var fotoObj = { src: srcFinal, isNC: itemAlvo.status === "NC", gps: null, ts: ts };
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function(pos) { fotoObj.gps = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy) }; },
+            function() {}, { enableHighAccuracy: true, timeout: 8000 }
+          );
+        }
+        itemAlvo.photos.push(fotoObj);
+        renderFotosEdicao(idx);
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = "";
+}
+
 function renderFotosEdicao(idx) {
   var container = document.getElementById("edit-fotos-" + idx);
   if (!container) return;
@@ -1673,6 +1766,15 @@ function salvarEdicao(idx) {
 
   var isLivre = def.items.length === 1 && def.items[0].cat === "Apontamento Livre";
   if (isLivre) {
+    // salva descrição
+    var elDesc = document.getElementById("edit-descricao-" + idx);
+    if (elDesc) {
+      var novaDesc = elDesc.value.trim();
+      if (novaDesc) {
+        NOMES_DISPLAY[novaDesc.toLowerCase()] = novaDesc;
+        def.items[0].name = novaDesc.toLowerCase();
+      }
+    }
     var novoStatus = document.getElementById("edit-btn-c-" + idx).dataset.selected;
     if (novoStatus) {
       def.items[0].status = novoStatus;
@@ -2077,7 +2179,19 @@ function gerarPDF() {
   }); // fim defensasRegistradas.forEach
 
   var sufixo = (!optNC ? "-conformes" : (!optC ? "-nao-conformes" : "-completo"));
-  var nomeArq = "vistoria-" + (d.rodovia||"defensa").replace(/\s/g,"-") + "-" + today.toISOString().split("T")[0] + sufixo + ".pdf";
+  var rand = Math.floor(1000 + Math.random() * 9000);
+  var primeiraRodovia = defensasRegistradas.length > 0 ? (defensasRegistradas[0].rodovia || "") : (d.rodovia || "");
+  var primeiraSentido = defensasRegistradas.length > 0 ? (defensasRegistradas[0].sentido || "") : (d.sentido || "");
+  var primeiroKm = defensasRegistradas.length > 0 ? (defensasRegistradas[0].km || "") : (d.km || "");
+  var dataStr = today.toISOString().split("T")[0];
+  var partesPDF = [
+    primeiraRodovia.replace(/\s/g,""),
+    primeiraSentido,
+    primeiroKm.replace(/\+/g,"-").replace(/\s/g,""),
+    dataStr,
+    rand
+  ].filter(Boolean);
+  var nomeArq = partesPDF.join("_") + ".pdf";
   doc.save(nomeArq);
   showToast("PDF gerado!");
 }
