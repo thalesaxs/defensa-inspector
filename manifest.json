@@ -1,7 +1,7 @@
 {
-  "name": "Defensa Inspector",
-  "short_name": "Defensa",
-  "description": "Vistoria de defensas metálicas — NBR 15486",
+  "name": "Registro de Inspeção",
+  "short_name": "Inspeção",
+  "description": "Registro de inspeções e apontamentos de campo",
   "start_url": "./vistoria-defensas.html",
   "display": "standalone",
   "orientation": "portrait",
